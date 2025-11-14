@@ -1,0 +1,52 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+
+# --- Logs ---
+logs/
+*.log
+
+# --- Virtual environments ---
+.venv/
+env/
+venv/
+
+# --- IDE / Editor ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- Builds ---
+build/
+dist/
+*.egg-info/
+
+# --- Temporary files ---
+*.bak
+*.swp
+*~
+
+# --- Tests & coverage ---
+tests/
+test/
+htmlcov/
+.pytest_cache/
+.coverage
+
+# --- Git ---
+.git
+.gitignore
+
+# --- Environment / local config ---
+.env
+*.env
+
+# --- Documentation (opcional remover) ---
+README.md
+
+# --- Outros ---
+*.md
