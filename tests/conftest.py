@@ -2,7 +2,10 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
+from src.db.database import db
 from src.external import create_app
 
 
@@ -11,6 +14,22 @@ def set_test_env():
     """Define variáveis de ambiente específicas para testes."""
     os.environ["FLASK_ENV"] = "testing"
     os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+
+
+@pytest.fixture(scope="session")
+def engine():
+    engine = create_engine("sqlite:///:memory:", echo=False)
+    db.Model.metadata.create_all(engine)
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture()
+def session(engine):
+    SessionLocal = sessionmaker(bind=engine)
+    session = SessionLocal()
+    yield session
+    session.close()
 
 
 @pytest.fixture

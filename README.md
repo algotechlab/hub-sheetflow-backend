@@ -151,3 +151,13 @@ O projeto segue um padrão **orientado a camadas bem definidas**:
 * **core/** → Configuração global (factory, logging, middlewares)
 * **utils/** → Funções utilitárias
 * **auth/** → Login, tokens, permissões
+
+
+# Comandos sobre a migração utilizando alembic
+
+
+Este comando gera uma migração persistente ao banco de dados de acordo com o modelo que é codificado.
+
+```
+alembic revision --autogenerate -m ""
+```
