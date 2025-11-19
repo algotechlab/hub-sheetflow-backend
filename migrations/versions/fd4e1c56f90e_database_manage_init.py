@@ -1,8 +1,8 @@
-"""init database manage
+"""database manage init
 
-Revision ID: 2a1447b1aa73
+Revision ID: fd4e1c56f90e
 Revises: 
-Create Date: 2025-11-18 18:55:25.839533
+Create Date: 2025-11-19 19:27:38.911042
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '2a1447b1aa73'
+revision: str = 'fd4e1c56f90e'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -97,6 +97,22 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_mappings_group_id'), 'mappings', ['group_id'], unique=False)
+    op.create_table('payments',
+    sa.Column('client_id', sa.Integer(), nullable=False),
+    sa.Column('due_date', sa.Date(), nullable=False),
+    sa.Column('amount', sa.Float(precision=10, asdecimal=True), nullable=False),
+    sa.Column('paid', sa.Boolean(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.Column('updated_by', sa.Integer(), nullable=True),
+    sa.Column('deleted_by', sa.Integer(), nullable=True),
+    sa.Column('deleted_at', sa.DateTime(), nullable=True),
+    sa.Column('is_deleted', sa.Boolean(), nullable=False),
+    sa.ForeignKeyConstraint(['client_id'], ['clients.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_payments_client_id'), 'payments', ['client_id'], unique=False)
     op.create_table('client_group_data',
     sa.Column('client_id', sa.Integer(), nullable=False),
     sa.Column('group_id', sa.Integer(), nullable=False),
@@ -128,6 +144,8 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_client_group_data_group_id'), table_name='client_group_data')
     op.drop_index(op.f('ix_client_group_data_client_id'), table_name='client_group_data')
     op.drop_table('client_group_data')
+    op.drop_index(op.f('ix_payments_client_id'), table_name='payments')
+    op.drop_table('payments')
     op.drop_index(op.f('ix_mappings_group_id'), table_name='mappings')
     op.drop_table('mappings')
     op.drop_index(op.f('ix_log_user_id'), table_name='log')
