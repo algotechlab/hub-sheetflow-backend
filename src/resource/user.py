@@ -17,17 +17,17 @@ user_us = Namespace("users", description="Manager users")
 payload_add_users = user_us.model(
     "PayloadAddUser",
     {
-        "username": fields.String(
+        "name": fields.String(
             required=True, example="User name", max_length=120
-        ),
-        "phone": fields.String(
-            required=True, example="User phone", max_length=40
         ),
         "email": fields.String(
             required=False, example="User email", max_length=120
         ),
         "password": fields.String(
             required=True, example="User password", max_length=300
+        ),
+        "role": fields.String(
+            required=True, example="admin or colaboration", max_length=20
         ),
     },
 )
@@ -40,7 +40,7 @@ payload_update_users = user_us.model(
             required=False, example="User name", max_length=120
         ),
         "phone": fields.String(
-            required=True, example="User phone", max_length=40
+            required=False, example="User phone", max_length=40
         ),
         "email": fields.String(
             required=False, example="User email", max_length=120
@@ -64,6 +64,23 @@ class UserResource(Resource):
             return UserService(user_id=user_id).list_users(
                 request.args.to_dict()
             )
+        except Exception:
+            return jsonify(
+                {
+                    "status_code": 500,
+                    "message_id": "something_went_wrong",
+                    "traceback": traceback.format_exc(),
+                }
+            )
+
+    @user_us.doc(description="Add Users")
+    @user_us.expect(payload_add_users, validate=True)
+    @cross_origin()
+    def post(self):
+        """Add users"""
+        try:
+            user_id = request.headers.get("Id", request.environ.get("Id"))
+            return UserService(user_id=user_id).add_user(request.get_json())
         except Exception:
             return jsonify(
                 {
