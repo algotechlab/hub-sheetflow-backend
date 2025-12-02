@@ -28,11 +28,11 @@ class Settings(BaseSettings):
     BACKEND_CORS_ORIGINS: Union[List[str], List[AnyHttpUrl]] = []
 
     DEBUG: bool = False
-    
+
     # Banco de dados
     SQLALCHEMY_DATABASE_URI: str
     SQLALCHEMY_DATABASE_URI_MIGRATIONS: str
-    
+
     # schema
     POSTGRES_SCHEMA: str = 'sheetflow'
 

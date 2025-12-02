@@ -17,7 +17,7 @@ class BaseModel:
 
     id: Mapped[uuid.UUID] = mapped_column(
         primary_key=True,
-        server_default=text("gen_random_uuid()"),
+        server_default=text('gen_random_uuid()'),
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -33,5 +33,5 @@ class BaseModel:
         Ex:  UserAccount -> user_account
         """
         cls_name = cls.__name__
-        snake = re.sub(r"(?<!^)(?=[A-Z])", "_", cls_name).lower()
+        snake = re.sub(r'(?<!^)(?=[A-Z])', '_', cls_name).lower()
         return snake
