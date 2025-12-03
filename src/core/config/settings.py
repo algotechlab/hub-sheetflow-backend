@@ -30,8 +30,12 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # Banco de dados
-    SQLALCHEMY_DATABASE_URI: str
-    SQLALCHEMY_DATABASE_URI_MIGRATIONS: str
+    SQLALCHEMY_DATABASE_URI: str = (
+        'postgresql+asyncpg://postgres:postgres@localhost:5477/sheetflow'
+    )
+    SQLALCHEMY_DATABASE_URI_MIGRATIONS: str = (
+        'postgresql+asyncpg://postgres:postgres@localhost:5477/sheetflow'
+    )
 
     # schema
     POSTGRES_SCHEMA: str = 'sheetflow'

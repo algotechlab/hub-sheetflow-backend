@@ -1,48 +1,25 @@
-# Etapa de build (para compilar dependências)
-FROM python:3.12-slim AS builder
+FROM python:3.13-slim
 
-# Instalar dependências do sistema necessárias
-RUN apt-get update && apt-get install -y \
-    gcc \
+WORKDIR /src
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     build-essential \
+    postgresql-client \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Instalar Poetry
-RUN pip install --no-cache-dir poetry>=1.8.0
+RUN pip install --upgrade pip && pip install poetry
 
-# Definir diretório de trabalho
-WORKDIR /app
-
-# Copiar arquivos de configuração do Poetry
 COPY pyproject.toml poetry.lock ./
 
-# Instalar dependências de produção (sem dev/test)
-RUN poetry config virtualenvs.create false \
-    && poetry install --only main --no-interaction --no-ansi --no-root
+RUN poetry config virtualenvs.create false
 
-# ---------------------------------------------------------------------
-# Etapa final (runtime)
-FROM python:3.12-slim
+# desabilita instalação do próprio projeto (evita erro do README)
+RUN poetry install --no-interaction --no-ansi --no-root
 
-# Instalar dependências mínimas de runtime
-RUN apt-get update && apt-get install -y \
-    libpq5 \
-    postgresql-client \
-    && rm -rf /var/lib/apt/lists/*
+COPY src /src/src
 
-# Definir diretório de trabalho
-WORKDIR /app
-
-# Copiar dependências instaladas da etapa de build
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
-
-# Copiar o código da aplicação
-COPY . .
-
-# Expor a porta
 EXPOSE 8000
 
-# Comando padrão (pode ser sobrescrito no docker-compose)
-CMD ["gunicorn", "--config", "gunicorn.conf.py", "--bind", "0.0.0.0:8000", "manage:app"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

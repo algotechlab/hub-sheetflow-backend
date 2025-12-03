@@ -2,10 +2,9 @@ import re
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, func, text
-from sqlalchemy.orm import as_declarative, declared_attr, Mapped, mapped_column
+from sqlalchemy import DateTime, func, text
+from sqlalchemy.orm import Mapped, as_declarative, declared_attr, mapped_column
 from sqlalchemy.schema import MetaData
-
 from src.core.config.settings import get_settings
 
 settings = get_settings()
@@ -26,12 +25,24 @@ class BaseModel:
         nullable=False,
     )
 
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
+
+    is_deleted: Mapped[bool] = mapped_column(
+        nullable=False,
+        default=False,
+    )
+
     @declared_attr.directive
     def __tablename__(cls) -> str:
         """
         Converte o nome da classe em snake_case.
         Ex:  UserAccount -> user_account
         """
-        cls_name = cls.__name__
+        cls_name = cls.__name__  # type: ignore[attr-defined]
         snake = re.sub(r'(?<!^)(?=[A-Z])', '_', cls_name).lower()
         return snake

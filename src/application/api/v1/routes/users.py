@@ -1,4 +1,5 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter
+
 # from src.application.api.v1.dependencies.common.pagination import PaginationParamsDep
 # from src.application.api.v1.dependencies.orders import OrdersRepositoryDep
 # from src.application.api.v1.schemas.common.exceptions import ExceptionSchema

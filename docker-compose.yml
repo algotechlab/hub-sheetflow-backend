@@ -1,48 +1,44 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  flask_database:
+  fastapi_database:
     image: postgres:15
-    container_name: flask_database
+    container_name: fastapi_database
     restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=sheetflow
     volumes:
-      - flask_database_data:/var/lib/postgresql/data
+      - fastapi_database_data:/var/lib/postgresql/data
     ports:
       - "5477:5432"
-    command: 
-      - "postgres"
-      - "-c"
-      - "listen_addresses=*"
-      - "-c"
-      - "max_connections=200"
-      - "-c"
-      - "shared_buffers=256MB"
-      - "-c"
-      - "work_mem=8MB"
-      - "-c"
-      - "log_min_messages=WARNING"
 
-  flask_sheetflow:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sheetflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  fast_api-sheetflow:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: flask_sheetflow
+    container_name: fast_api-sheetflow
     depends_on:
-      - flask_database
+      fastapi_database:
+        condition: service_healthy
     restart: always
     ports:
       - "8000:8000"
     environment:
-      - SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@flask_database:5432/sheetflow
+      - SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@fastapi_database:5432/sheetflow
       - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,flask_sheetflow
+      - ALLOWED_HOSTS=localhost,127.0.0.1,fast_api-sheetflow
     volumes:
       - .:/app
-    command: gunicorn --config gunicorn.conf.py -b 0.0.0.0:8000 manage:app
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
 
 volumes:
-  flask_database_data:
+  fastapi_database_data:

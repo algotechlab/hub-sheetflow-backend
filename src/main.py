@@ -7,6 +7,7 @@ from src.application.api.v1.middlewares.exceptions import (
     custom_exception_handler,
 )
 from src.core.config.settings import get_settings
+from src.core.domain.models import load_all_models
 from src.core.exceptions.custom import (
     DomainException,
     MultipleException,
@@ -32,6 +33,8 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_methods=['*'],
         allow_headers=['*'],
     )
+
+load_all_models()
 
 
 app.add_exception_handler(DomainException, custom_exception_handler)
