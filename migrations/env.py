@@ -1,61 +1,71 @@
 import os
 import sys
+import pathlib
+import asyncio
 from logging.config import fileConfig
 
+sys.path.append(str(pathlib.Path(__file__).resolve().parents[1]))
+
+
 from alembic import context
-from sqlalchemy import engine_from_config, pool
-from dotenv import load_dotenv
+from sqlalchemy.engine import Connection
+from sqlalchemy.ext.asyncio import create_async_engine
+from src.core.config.settings import get_settings
+from src.core.domain.models import load_all_models
+from src.core.domain.models.base import BaseModel
 
-# Carrega variáveis do .env
-load_dotenv()
 
-# Caminho raiz
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+settings = get_settings()
 
-# Importa Base e models
-from src.db.database import db as Base
-from src.model import load_all_models
-
-# Config do Alembic
 config = context.config
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+config.set_main_option('sqlalchemy.url', settings.SQLALCHEMY_DATABASE_URI_MIGRATIONS)
 
-database_url = os.getenv("SQLALCHEMY_DATABASE_URI_MIGRATIONS")
-if not database_url:
-    raise RuntimeError("SQLALCHEMY_DATABASE_URI_MIGRATIONS não encontrada no .env")
-
-config.set_main_option("sqlalchemy.url", database_url)
-
-target_metadata = Base.metadata
+target_metdata = BaseModel.metadata
 load_all_models()
 
-def include_object(obj, name, type_, reflected, compare_to):
-    if type_ != "table":
-        return True
 
-    schema = getattr(obj, "schema", None)
-    full_name = f"{schema}.{name}" if schema else name
-    return full_name
-
-def run_migrations_online():
-    """Rodar migrations em modo sync"""
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+    
+    
+def run_migrations_offline() -> None:
+    context.configure(
+        url=settings.SQLALCHEMY_DATABASE_URI_MIGRATIONS,
+        target_metadata=target_metdata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+        include_schemas=True,
+        versions_table_schema=settings.POSTGRES_SCHEMA,
     )
-
-    with connectable.connect() as connection:
-        context.configure(
-            connection=connection, 
-            target_metadata=target_metadata,
-            include_object=include_object,
-            include_schemas=True,
-            compare_type=True
-        )
-
-        with context.begin_transaction():
-            context.run_migrations()
-
-run_migrations_online()
+    with context.begin_transaction():
+        context.run_migrations()
+        
+        
+def do_run_migrations(connection: Connection) -> None:
+    context.configure(
+        connection=connection,
+        target_metadata=target_metdata,
+        compare_type=True,
+        include_schemas=True,
+        versions_table_schema=settings.POSTGRES_SCHEMA,
+    )
+    with context.begin_transaction():
+        context.run_migrations()
+        
+async def run_migrations_online() -> None:
+    connectable = create_async_engine(
+        settings.SQLALCHEMY_DATABASE_URI_MIGRATIONS,
+        pool_pre_ping=True,
+    )
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
+    await connectable.dispose()
+    
+    
+def run_migrations() -> None:
+    if context.is_offline_mode():
+        run_migrations_offline()
+    else:
+        asyncio.run(run_migrations_online())
+        
+run_migrations()

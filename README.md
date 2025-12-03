@@ -8,60 +8,20 @@ Backend responsável por realizar o **fluxo contínuo de dados** entre planilhas
 
 A seguir, o mapa completo da estrutura atual do backend:
 
-```
-hub-sheetflow-backend/
-├── CHANGES.md
-├── Dockerfile
-├── LICENSE
-├── README.md
-├── alembic.ini
-├── docker-compose.yml
-├── example.env
-├── gunicorn.conf.py
-├── manage.py
-├── poetry.lock
-├── pyproject.toml
-├── tests/
-│   └── ... (testes unitários)
-└── src/
-    ├── __init__.py
-    ├── __pycache__/
-    ├── auth/
-    │   └── ... (módulos de autenticação, tokens, permissões)
-    ├── core/
-    │   └── ... (configurações gerais, logging, factory da aplicação)
-    ├── db/
-    │   ├── database.py   (instância do SQLAlchemy)
-    │   ├── extensions.py (funções de conexão, inicialização, helpers)
-    │   └── ...  
-    ├── external.py       (clientes externos / integrações externas)
-    ├── model/
-    │   └── ... (modelos ORM do SQLAlchemy)
-    ├── resource/
-    │   └── ... (rotas e controladores da API — padrão Flask Resources)
-    ├── service/
-    │   └── ... (regras de negócio, casos de uso, validações)
-    ├── static/
-    │   └── ... (arquivos estáticos, se usados)
-    └── utils/
-        └── ... (funções utilitárias, helpers)
-```
 
 ---
 
 # 🧪 **Tecnologias utilizadas**
 
-* **Python 3.12+**
-* **Flask**
-* **Flask-restx**
-* **Flask-SQLAlchemy**
+* **Python 3.13+**
+* **Fastapi**
 * **Alembic**
-* **Gunicorn**
+* **uvicorn**
 * **Docker / Docker Compose**
 * **Poetry**
 * **Pytest**
 * **Logging estruturado**
-* **Arquitetura modular (auth / service / resource / core)**
+* **Arquitetura hexagonal**
 
 ---
 
