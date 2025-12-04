@@ -15,6 +15,7 @@ async def test_add_users_success(users_use_case, mock_service):
         id=uuid4(),
         username='johndoe',
         email='john@example.com',
+        role='admin',
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )

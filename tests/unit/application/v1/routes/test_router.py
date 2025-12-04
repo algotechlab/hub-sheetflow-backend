@@ -18,6 +18,7 @@ async def test_add_users_success(client, override_dependency):
         id=uuid4(),
         username='johndoe',
         email='john@example.com',
+        role='admin',
         created_at=now,
         updated_at=now,
     )
@@ -29,6 +30,7 @@ async def test_add_users_success(client, override_dependency):
         'id': str(mock_response.id),
         'username': 'johndoe',
         'email': 'john@example.com',
+        'role': 'admin',
         'created_at': now.isoformat().replace('+00:00', 'Z'),
         'updated_at': now.isoformat().replace('+00:00', 'Z'),
     }

@@ -19,6 +19,7 @@ async def test_add_users_success(users_controller, mock_use_case):
     mock_response.id = uuid.uuid4()
     mock_response.username = 'johndoe'
     mock_response.email = 'john@example.com'
+    mock_response.role = 'admin'
 
     mock_use_case.add_users.return_value = mock_response
 

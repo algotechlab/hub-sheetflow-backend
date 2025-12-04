@@ -21,12 +21,14 @@ async def test_add_users_success(users_repo, mock_session):
         username='johndoe', email='john@example.com', password='password123'
     )
     mock_id = uuid4()
+    mock_role = 'admin'
     mock_created_at = datetime.now()
     mock_updated_at = datetime.now()
 
     # Simula o refresh setando os campos gerados (como o DB faria)
     async def simulate_refresh(user):
         user.id = mock_id
+        user.role = mock_role
         user.created_at = mock_created_at
         user.updated_at = mock_updated_at
 

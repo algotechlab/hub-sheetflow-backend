@@ -28,6 +28,7 @@ class UserOutSchema(BaseModel):
     id: UUID
     username: str
     email: str
+    role: str
     created_at: datetime
     updated_at: datetime
 
