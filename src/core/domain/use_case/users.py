@@ -1,6 +1,7 @@
 from src.core.domain.dtos.users import UserBaseDto, UserOutDto
 from src.core.domain.exceptions.users import UserEmailDuplicatedException
 from src.core.domain.service.users import UsersService
+from src.core.domain.utils.get_argon import hash_password
 
 
 class UsersUseCase:
@@ -9,6 +10,7 @@ class UsersUseCase:
 
     async def add_users(self, users: UserBaseDto) -> UserOutDto:
         try:
+            users.password = hash_password(users.password)
             return await self.users_service.add_users(users)
         except UserEmailDuplicatedException:
             raise UserEmailDuplicatedException(

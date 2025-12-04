@@ -1,6 +1,7 @@
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
 from src.core.config.settings import get_settings
+from src.core.domain.enum.users import UsersRole
 from src.core.domain.models.base import BaseModel
 
 settings = get_settings()
@@ -18,4 +19,9 @@ class User(BaseModel):
     password: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
+    )
+    role: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+        default=UsersRole.ADMIN,
     )
