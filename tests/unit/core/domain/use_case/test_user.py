@@ -1,0 +1,63 @@
+from datetime import datetime
+from uuid import uuid4
+
+import pytest
+from src.core.domain.dtos.users import UserBaseDto, UserOutDto
+from src.core.domain.exceptions.users import UserEmailDuplicatedException
+
+
+@pytest.mark.asyncio
+async def test_add_users_success(users_use_case, mock_service):
+    input_dto = UserBaseDto(
+        username='johndoe', email='john@example.com', password='password123'
+    )
+    mock_response = UserOutDto(
+        id=uuid4(),
+        username='johndoe',
+        email='john@example.com',
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+    mock_service.add_users.return_value = mock_response
+
+    # Act: Chama o método do use case
+    result = await users_use_case.add_users(input_dto)
+
+    # Assert: Verifica chamada ao service e resultado
+    mock_service.add_users.assert_awaited_once_with(input_dto)
+    assert result == mock_response
+    assert isinstance(result, UserOutDto)
+
+
+@pytest.mark.asyncio
+async def test_add_users_email_duplicated(users_use_case, mock_service):
+    # Arrange: Configura o service pra levantar UserEmailDuplicatedException
+    input_dto = UserBaseDto(
+        username='johndoe', email='john@example.com', password='password123'
+    )
+    mock_service.add_users.side_effect = UserEmailDuplicatedException('Email duplicado')
+
+    # Act & Assert: Verifica se relança com mensagem customizada
+    with pytest.raises(UserEmailDuplicatedException) as exc_info:
+        await users_use_case.add_users(input_dto)
+
+    assert (
+        str(exc_info.value)
+        == f'Esse {input_dto.username} já está cadastrado com {input_dto.email}.'
+    )
+    mock_service.add_users.assert_awaited_once_with(input_dto)
+
+
+@pytest.mark.asyncio
+async def test_add_users_other_exception(users_use_case, mock_service):
+    # Arrange: Configura o service pra levantar outra exceção
+    input_dto = UserBaseDto(
+        username='johndoe', email='john@example.com', password='password123'
+    )
+    mock_service.add_users.side_effect = ValueError('Outra erro simulado')
+
+    # Act & Assert: Verifica se propaga a exceção original
+    with pytest.raises(ValueError, match='Outra erro simulado'):
+        await users_use_case.add_users(input_dto)
+
+    mock_service.add_users.assert_awaited_once_with(input_dto)

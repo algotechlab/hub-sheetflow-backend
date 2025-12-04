@@ -1,0 +1,16 @@
+import pytest
+from src.application.api.v1.controller.users import UsersController
+from src.application.api.v1.dependencies.users import get_users_controller
+
+
+class DummySession:
+    pass
+
+
+@pytest.mark.asyncio
+async def test_get_users_controller_returns_instance():
+    session = DummySession()
+
+    controller = await get_users_controller(session)  # executa dependência
+
+    assert isinstance(controller, UsersController)

@@ -19,13 +19,6 @@ class UserBaseSchema(BaseModel):
             raise ValueError('username must be alphanumeric')
         return value
 
-    @field_validator('password', mode='after')
-    def password_must_be_strong(cls, value: str) -> str:
-        value_exp = 8
-        if len(value) < value_exp:
-            raise ValueError('password must be at least 8 characters long')
-        return value
-
 
 class UserOutSchema(BaseModel):
     """

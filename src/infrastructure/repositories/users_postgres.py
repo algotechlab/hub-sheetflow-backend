@@ -25,8 +25,13 @@ class UsersRepositoryPostgres(UsersRepositoriesInterface):
             return UserOutDto.model_validate(user)
         except IntegrityError as error:
             await self.session.rollback()
-            error_code = error.orig.pgcode
-            detail = str(error.orig)
+            orig = error.orig
+            if orig is None or not hasattr(orig, 'pgcode'):
+                raise DuplicatedException(str(error))
+
+            error_code = orig.pgcode
+            detail = str(orig)
+
             match error_code:
                 case PostgresErrorCode.UNIQUE_VIOLATION:
                     if 'email' in detail:
