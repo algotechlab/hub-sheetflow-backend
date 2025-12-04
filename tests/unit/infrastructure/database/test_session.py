@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import src.infrastructure.database.session as session_module  # Import the module
+import src.infrastructure.database.session as session_module
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
