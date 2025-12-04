@@ -5,13 +5,14 @@ from fastapi.responses import JSONResponse
 from src.core.domain.utils.get_from_sequence import get_from_sequence
 from src.core.exceptions.custom import (
     DomainException,
+    InfrastructureException,
     MultipleException,
 )
 
 
 async def custom_exception_handler(
     request: Request,
-    exc: Union[DomainException, MultipleException, Exception],
+    exc: Union[DomainException, MultipleException, InfrastructureException, Exception],
 ) -> JSONResponse:
     if isinstance(exc, MultipleException):
         status_code = getattr(exc, 'status_code', status.HTTP_400_BAD_REQUEST)

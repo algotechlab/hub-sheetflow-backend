@@ -24,7 +24,7 @@ help:
 	@echo "        Lint code with ruff and try to fix."	
 
 run:
-	poetry run uvicorn src.main:app --reload --workers 3 --host 0.0.0.0 --port $(API_PORT)
+	poetry run uvicorn src.main:app --reload --workers 3 --port $(API_PORT)
 
 build:
 	docker compose up -d --build
