@@ -1,11 +1,6 @@
-from fastapi import APIRouter
-
-# from src.application.api.v1.dependencies.common.pagination import PaginationParamsDep
-# from src.application.api.v1.dependencies.orders import OrdersRepositoryDep
-# from src.application.api.v1.schemas.common.exceptions import ExceptionSchema
-# from src.application.api.v1.schemas.orders import (
-#     OrdersPaginatedOutSchema,
-# )
+from fastapi import APIRouter, status
+from src.application.api.v1.dependencies.users import UsersRepositoryDep
+from src.application.api.v1.schemas.users import UserBaseSchema, UserOutSchema
 
 tags_metadata = {
     'name': 'Usuários',
@@ -19,20 +14,22 @@ router = APIRouter(
 )
 
 
-# @router.get(
-#     '',
-#     description='Listagem de pedidos (visualização de matricula).',
-#     status_code=status.HTTP_200_OK,
-#     response_model=OrdersPaginatedOutSchema,
-#     responses={
-#         status.HTTP_422_UNPROCESSABLE_ENTITY: {
-#             'description': 'Filtros inválidos ou dados incorretos.',
-#             'model': ExceptionSchema,
-#         },
-#     },
-# )
-# async def list_orders(
-#     controller: OrdersRepositoryDep,
-#     pagination: PaginationParamsDep,
-# ) -> OrdersPaginatedOutSchema:
-#     return await controller.list_orders(pagination)
+@router.post(
+    '',
+    description='Rota para adicionar usuário',
+    status_code=status.HTTP_201_CREATED,
+    response_model=UserOutSchema,
+    responses={
+        status.HTTP_201_CREATED: {
+            'description': 'Usuário criado com sucesso',
+        },
+        status.HTTP_409_CONFLICT: {
+            'description': 'Usuário com email duplicado',
+        },
+    },
+)
+async def add_users(
+    controller: UsersRepositoryDep,
+    users: UserBaseSchema,
+) -> UserOutSchema:
+    return await controller.add_users(users)

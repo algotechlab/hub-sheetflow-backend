@@ -24,3 +24,31 @@ class RequestValidationErrorException(Exception):
 
     status_code: int = HTTPStatus.UNPROCESSABLE_ENTITY.value
     code: str = 'VALIDATION_ERROR'
+
+
+class InfrastructureException(Exception):
+    """Raised when infrastructure operation fails."""
+
+    status_code: int = HTTPStatus.INTERNAL_SERVER_ERROR.value
+    code: str = 'INTERNAL_ERROR'
+
+
+class DatabaseException(InfrastructureException):
+    """Raised when database operation fails."""
+
+    code: str = 'DATABASE_ERROR'
+    message: str
+
+
+class DuplicatedException(InfrastructureException):
+    """Raised when database operation fails."""
+
+    status_code: int = HTTPStatus.CONFLICT.value
+    code: str = 'DUPLICATED_ERROR'
+
+
+class NotFoundException(InfrastructureException):
+    """Raised when database operation fails."""
+
+    status_code: int = HTTPStatus.NOT_FOUND.value
+    code: str = 'NOT_FOUND_ERROR'

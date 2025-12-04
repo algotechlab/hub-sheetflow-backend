@@ -29,13 +29,16 @@ class Settings(BaseSettings):
 
     DEBUG: bool = False
 
-    # Banco de dados
+    # Banco de dados com placeholder para o docker
     SQLALCHEMY_DATABASE_URI: str = (
         'postgresql+asyncpg://postgres:postgres@localhost:5477/sheetflow'
     )
     SQLALCHEMY_DATABASE_URI_MIGRATIONS: str = (
         'postgresql+asyncpg://postgres:postgres@localhost:5477/sheetflow'
     )
+    DATABASE_POOL_SIZE: int = 5
+    DATABASE_MAX_OVERFLOW: int = 10
+    DATABASE_TIMEOUT: int = 30
 
     # schema
     POSTGRES_SCHEMA: str = 'sheetflow'
