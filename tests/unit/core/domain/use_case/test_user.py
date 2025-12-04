@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import List
 from uuid import uuid4
 
 import pytest
+from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 from src.core.domain.dtos.users import UserBaseDto, UserOutDto
 from src.core.domain.exceptions.users import UserEmailDuplicatedException
 
@@ -62,3 +64,67 @@ async def test_add_users_other_exception(users_use_case, mock_service):
         await users_use_case.add_users(input_dto)
 
     mock_service.add_users.assert_awaited_once_with(input_dto)
+
+
+@pytest.mark.asyncio
+async def test_list_users_success(users_use_case, mock_service):
+    count = 2
+    # Arrange: Mock input DTO e resposta do service
+    input_dto = PaginationParamsDTO(filter_by='username', filter_value='john')
+    mock_users = [
+        UserOutDto(
+            id=uuid4(),
+            username='john1',
+            email='john1@example.com',
+            role='user',
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        ),
+        UserOutDto(
+            id=uuid4(),
+            username='john2',
+            email='john2@example.com',
+            role='admin',
+            created_at=datetime.now(),
+            updated_at=datetime.now(),
+        ),
+    ]
+    mock_service.list_users.return_value = mock_users
+
+    # Act: Chama o método do use case
+    result = await users_use_case.list_users(input_dto)
+
+    # Assert: Verifica chamada ao service e resultado
+    mock_service.list_users.assert_awaited_once_with(input_dto)
+    assert result == mock_users
+    assert isinstance(result, List)
+    assert len(result) == count
+    assert result[0].username == 'john1'
+    assert result[1].username == 'john2'
+
+
+@pytest.mark.asyncio
+async def test_list_users_no_filter(users_use_case, mock_service):
+    # Arrange: Sem filtro
+    input_dto = PaginationParamsDTO(filter_by=None, filter_value=None)
+    mock_service.list_users.return_value = []
+
+    # Act
+    result = await users_use_case.list_users(input_dto)
+
+    # Assert: Lista vazia
+    mock_service.list_users.assert_awaited_once_with(input_dto)
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_list_users_handles_exception(users_use_case, mock_service):
+    # Arrange: Configura o service pra levantar exceção
+    input_dto = PaginationParamsDTO(filter_by='username', filter_value='john')
+    mock_service.list_users.side_effect = ValueError('Simulated service error')
+
+    # Act & Assert: Verifica se propaga a exceção
+    with pytest.raises(ValueError, match='Simulated service error'):
+        await users_use_case.list_users(input_dto)
+
+    mock_service.list_users.assert_awaited_once()

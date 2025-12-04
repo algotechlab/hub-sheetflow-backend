@@ -3,12 +3,15 @@ from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 from src.core.domain.dtos.users import UserBaseDto, UserOutDto
 from src.core.domain.exceptions.users import (
     DuplicatedException,
     UserEmailDuplicatedException,
 )
+from src.core.domain.models.users import User
 from src.core.exceptions.custom import DatabaseException
 from src.infrastructure.database.utils import PostgresErrorCode
 
@@ -128,3 +131,111 @@ async def test_add_users_general_exception(users_repo, mock_session):
             await users_repo.add_users(input_dto)
 
         mock_session.rollback.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_list_users_success_no_filter(users_repo, mock_session):
+    # Arrange: Mock input DTO sem filtro, resultado da query
+    count = 2
+    input_dto = PaginationParamsDTO(filter_by=None, filter_value=None)
+    mock_rows = [
+        MagicMock(
+            _mapping={
+                'id': uuid4(),
+                'username': 'user1',
+                'email': 'user1@example.com',
+                'role': 'user',
+                'created_at': datetime.now(),
+                'updated_at': datetime.now(),
+            }
+        ),
+        MagicMock(
+            _mapping={
+                'id': uuid4(),
+                'username': 'user2',
+                'email': 'user2@example.com',
+                'role': 'admin',
+                'created_at': datetime.now(),
+                'updated_at': datetime.now(),
+            }
+        ),
+    ]
+    mock_result = MagicMock()
+    mock_result.all.return_value = mock_rows
+    mock_session.execute.return_value = mock_result
+
+    # Act: Chama o método
+    result = await users_repo.list_users(input_dto)
+
+    # Assert: Verifica query sem filtro, ordem, e resultado
+    actual_query = mock_session.execute.await_args[0][0]
+    expected_query = select(
+        User.id,
+        User.username,
+        User.email,
+        User.role,
+        User.created_at,
+        User.updated_at,
+    ).order_by(User.created_at)
+    assert str(actual_query) == str(expected_query)
+    assert len(result) == count
+    assert result[0].username == 'user1'
+    assert result[1].username == 'user2'
+    mock_session.rollback.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_list_users_success_with_filter(users_repo, mock_session):
+    # Arrange: Com filtro
+    input_dto = PaginationParamsDTO(filter_by='username', filter_value='john')
+    mock_rows = [
+        MagicMock(
+            _mapping={
+                'id': uuid4(),
+                'username': 'john',
+                'email': 'john@example.com',
+                'role': 'user',
+                'created_at': datetime.now(),
+                'updated_at': datetime.now(),
+            }
+        )
+    ]
+    mock_result = MagicMock()
+    mock_result.all.return_value = mock_rows
+    mock_session.execute.return_value = mock_result
+
+    # Act
+    result = await users_repo.list_users(input_dto)
+
+    # Assert: Query com filtro
+    actual_query = mock_session.execute.await_args[0][0]
+    expected_query = (
+        select(
+            User.id,
+            User.username,
+            User.email,
+            User.role,
+            User.created_at,
+            User.updated_at,
+        )
+        .order_by(User.created_at)
+        .filter(User.username == 'john')
+    )
+    assert str(actual_query) == str(expected_query)
+    assert len(result) == 1
+    assert result[0].username == 'john'
+    mock_session.rollback.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_list_users_exception(users_repo, mock_session):
+    # Arrange: Simula exceção na execute
+    input_dto = PaginationParamsDTO(filter_by=None, filter_value=None)
+    mock_session.execute.side_effect = ValueError('Simulated DB error')
+
+    # Act & Assert: Levanta DatabaseException e rollback
+    with pytest.raises(DatabaseException, match='Simulated DB error'):
+        await users_repo.list_users(input_dto)
+
+    mock_session.rollback.assert_awaited_once()
+    mock_session.execute.assert_awaited_once()
