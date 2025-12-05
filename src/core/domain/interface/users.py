@@ -17,3 +17,6 @@ class UsersRepositoriesInterface(ABC):
     async def update_user(
         self, user_id: UUID, users: UpdateUserDto
     ) -> Union[UserOutDto, None]: ...
+
+    @abstractmethod
+    async def delete_user(self, user_id: UUID) -> bool: ...

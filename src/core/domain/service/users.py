@@ -20,3 +20,6 @@ class UsersService:
         self, user_id: UUID, users: UpdateUserDto
     ) -> Union[UserOutDto, None]:
         return await self.users_repository.update_user(user_id, users)
+
+    async def delete_user(self, user_id: UUID) -> bool:
+        return await self.users_repository.delete_user(user_id)

@@ -166,3 +166,45 @@ async def test_update_user_validation_error(client, override_dependency, generat
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     # Pode assertar os detalhes do erro se quiser mais precisão
     assert 'detail' in response.json()
+
+
+@pytest.mark.asyncio
+async def test_delete_user_success(client, override_dependency, generate_uuid):
+    # Arrange: Configura mock para sucesso (não retorna nada, só chama)
+    user_id = UUID(generate_uuid)
+    override_dependency.delete_user.return_value = (
+        None  # Assume retorna None no sucesso
+    )
+
+    # Act: Faz a requisição DELETE
+    response = client.delete(f'/api/v1/users/{generate_uuid}')
+
+    # Assert: Verifica status 204 e chamada
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert response.content == b''  # No content
+    override_dependency.delete_user.assert_called_once_with(user_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_user_not_found(client, override_dependency, generate_uuid):
+    # Arrange: Configura o mock para levantar HTTPException 404
+    override_dependency.delete_user.side_effect = HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail='Usuário não encontrado'
+    )
+
+    # Act: Faz a requisição DELETE
+    response = client.delete(f'/api/v1/users/{generate_uuid}')
+
+    # Assert: Verifica status e detalhe
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json()['detail'] == 'Usuário não encontrado'
+
+
+@pytest.mark.asyncio
+async def test_delete_user_invalid_uuid(client, override_dependency):
+    # Act: UUID inválido no path (FastAPI valida automaticamente)
+    response = client.delete('/api/v1/users/invalid-uuid')
+
+    # Assert: Erro de validação 422
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert 'detail' in response.json()

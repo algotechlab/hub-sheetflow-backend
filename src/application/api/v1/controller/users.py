@@ -34,3 +34,6 @@ class UsersController:
         users_dto = UpdateUserDto(**users.model_dump())
         users_case = await self.use_case.update_user(user_id, users_dto)
         return UserOutSchema.model_validate(users_case)
+
+    async def delete_user(self, user_id: UUID) -> None:
+        return await self.use_case.delete_user(user_id)
