@@ -1,43 +1,92 @@
 # **hub-sheetflow-backend**
 
-Backend responsável por realizar o **fluxo contínuo de dados** entre planilhas Excel e o sistema, garantindo ingestão, transformação, validação e sincronização de forma segura, modular e escalável.
+Backend responsável por orquestrar o **fluxo contínuo de dados** entre planilhas Excel e o sistema interno. Ele realiza **ingestão, transformação, validação e sincronização** de forma segura, modular e escalável, seguindo princípios de *Clean Architecture* e uma abordagem hexagonal.
 
 ---
 
 ## 📁 **Estrutura do Projeto**
 
-A seguir, o mapa completo da estrutura atual do backend:
-
+```textplain
+hub-sheetflow-backend/
+├── entrypoints/                    # Scripts de entrada dos containers Docker
+│   └── init-app.sh                # Inicialização da aplicação dentro do container
+│
+├── pipelines/                      # Configurações de CI/CD
+│   └── app-python.yaml            # Pipeline de build/deploy
+│
+├── .vscode/                        # Configurações do VSCode
+│   ├── launch.json                # Debug com Docker
+│   └── settings.json              # Ajustes personalizados
+│
+├── src/                            # Código-fonte principal
+│   ├── application/               # Camada de aplicação
+│   │   └── api/
+│   │       └── v1/
+│   │           ├── controllers/   # Processamento de requisições
+│   │           ├── middlewares/   # Interceptadores de requisição
+│   │           ├── routes/        # Definição das rotas
+│   │           ├── schemas/       # Validação e contratos de entrada/saída
+│   │           └── __init__.py
+│   │
+│   ├── core/                      # Regras de domínio
+│   │   ├── config/                # Configurações globais
+│   │   ├── domain/                # Entidades e lógica de domínio
+│   │   │   ├── exceptions/        # Exceções de domínio
+│   │   │   ├── interfaces/        # Interfaces de repositórios
+│   │   │   ├── services/          # Serviços principais
+│   │   │   ├── use_cases/         # Casos de uso
+│   │   │   └── __init__.py
+│   │   └── exceptions/            # Exceções globais da aplicação
+│   │
+│   ├── infrastructure/            # Infraestrutura e persistência
+│   │   ├── repositories/          # Implementações concretas de repositórios
+│   │   └── __init__.py
+│   │
+│   └── main.py                    # Ponto de entrada principal da API
+│
+├── tests/                          # Testes automatizados
+│   └── unit/
+│       ├── application/
+│       ├── core/
+│       ├── infrastructure/
+│       └── test_main.py
+│
+├── Dockerfile                      # Build da imagem Docker
+├── docker-compose.yml              # Orquestração local
+├── pyproject.toml                  # Dependências via Poetry
+└── README.md                       # Documentação do projeto
+```
 
 ---
 
-# 🧪 **Tecnologias utilizadas**
+## 🔧 **Tecnologias utilizadas**
 
-* **Python 3.13+**
-* **Fastapi**
+* Python **3.13+**
+* **FastAPI**
+* **SQLAlchemy**
 * **Alembic**
-* **uvicorn**
-* **Docker / Docker Compose**
+* **Uvicorn**
+* **Docker & Docker Compose**
 * **Poetry**
 * **Pytest**
 * **Logging estruturado**
-* **Arquitetura hexagonal**
+* **Arquitetura Hexagonal**
 
 ---
 
 # 🚀 **Instalação e Setup**
 
-### **1. Criar o arquivo `.env`**
+## 1️⃣ Criar o arquivo `.env`
 
 ```bash
 cp example.env .env
 ```
 
-Preencha as variáveis conforme seu ambiente.
+Preencha as variáveis conforme o seu ambiente local.
 
 ---
 
-### **2. Instalar o Poetry**
+## 2️⃣ Instalar o Poetry
 
 ```bash
 pip install poetry
@@ -45,7 +94,7 @@ pip install poetry
 
 ---
 
-### **3. Instalar dependências**
+## 3️⃣ Instalar dependências
 
 ```bash
 poetry install
@@ -53,34 +102,36 @@ poetry install
 
 ---
 
-## 🐳 **Executar o sistema com Docker**
+# 🐳 **Executar com Docker**
 
-### **Build da imagem**
+## 🔨 Build da imagem
 
 ```bash
 docker compose build
 ```
 
-### **Subir tudo**
+## ▶️ Subir o ambiente
 
 ```bash
 docker compose up
 ```
 
-A API ficará disponível na porta definida no `.env`.
+A API ficará disponível na porta configurada no `.env`.
 
 ---
 
-# 🛠️ **Antes de fazer commit**
+# 🛠️ **Fluxo de desenvolvimento**
 
-Execute os linters:
+Antes de commitar, execute:
+
+### Formatadores:
 
 ```bash
 poetry run task format
 poetry run task check
 ```
 
-Rodar testes:
+### Testes:
 
 ```bash
 poetry run task test
@@ -88,36 +139,68 @@ poetry run task test
 
 ---
 
-# 🔧 **Gerenciar a aplicação**
+# ⚙️ **Rodar manualmente (modo desenvolvimento)**
 
-Rodar comandos via `manage.py`:
+Para iniciar com debug ativo:
 
 ```bash
-poetry run python manage.py <comando>
+make run
 ```
 
-Por exemplo, verificar conexão com DB, popular tabelas, rodar migrações, etc.
+Isso executa:
+
+```
+python -m debugpy --listen 0.0.0.0:5678 -m uvicorn src.main:app --reload --workers 3 --host 0.0.0.0 --port 8000
+```
 
 ---
 
 # 🗂️ **Padrão de arquitetura**
 
-O projeto segue um padrão **orientado a camadas bem definidas**:
+O projeto segue uma arquitetura **orientada a domínio**, com camadas isoladas:
 
-* **resource/** → Entrada da API (rotas, controllers)
-* **service/** → Regras de negócio e casos de uso
-* **model/** → Modelos ORM
-* **db/** → Conexão, migrações e configurações do banco
-* **core/** → Configuração global (factory, logging, middlewares)
-* **utils/** → Funções utilitárias
-* **auth/** → Login, tokens, permissões
+| Camada            | Descrição                                                    |
+| ----------------- | ------------------------------------------------------------ |
+| `application/`    | Camada de entrada: controllers, rotas, middlewares e schemas |
+| `core/`           | Regras de negócio, entidades, casos de uso, serviços         |
+| `infrastructure/` | Banco de dados, repositórios, integrações externas           |
+| `migrations/`     | Controle de migrações usando Alembic                         |
 
+---
 
-# Comandos sobre a migração utilizando alembic
+# 🧬 **Migrações (Alembic)**
 
+Gerar uma nova migração com base nas models:
 
-Este comando gera uma migração persistente ao banco de dados de acordo com o modelo que é codificado.
-
+```bash
+alembic revision --autogenerate -m "mensagem da migração"
 ```
-alembic revision --autogenerate -m ""
+
+Aplicar migrações:
+
+```bash
+alembic upgrade head
 ```
+
+Reverter:
+
+```bash
+alembic downgrade -1
+```
+
+---
+
+# 🤝 **Contribuindo**
+
+1. Crie uma branch a partir da `main`
+2. Execute `task format` e `task check`
+3. Adicione ou atualize testes
+4. Abra um Pull Request bem documentado
+
+---
+
+# 📄 **Licença**
+
+Este projeto é privado e de uso interno.
+
+---

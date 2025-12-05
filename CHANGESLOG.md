@@ -13,4 +13,4 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 ## [v0.0.1] - 2025-12-04
 
 ### Modulo do usuário
-CRUD completo de usuário,
+CRUD completo de usuário, gestão completa de usuários, todos os usuários que estão cadastrados na plataforma eles vão vim com o persionamento de admnistrador e com isso será validado com os stackholders para possíveis mudanças.
