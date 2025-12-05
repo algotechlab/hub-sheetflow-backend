@@ -147,3 +147,30 @@ async def test_update_user_success(users_controller, mock_use_case):
     assert result.id == user_id
     assert result.username == 'updated_user'
     assert result.email == 'updated@example.com'
+
+
+@pytest.mark.asyncio
+async def test_delete_user_success(users_controller, mock_use_case):
+    # Arrange: Mock user_id e use_case retorna None (sucesso)
+    user_id = uuid.uuid4()
+    mock_use_case.delete_user.return_value = None
+
+    # Act: Chama o método do controller
+    result = await users_controller.delete_user(user_id)
+
+    # Assert: Verifica chamada ao use_case e retorno None
+    mock_use_case.delete_user.assert_awaited_once_with(user_id)
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_delete_user_handles_exception(users_controller, mock_use_case):
+    # Arrange: Configura o use_case pra levantar exceção
+    user_id = uuid.uuid4()
+    mock_use_case.delete_user.side_effect = ValueError('Simulated use case error')
+
+    # Act & Assert: Verifica se propaga a exceção
+    with pytest.raises(ValueError, match='Simulated use case error'):
+        await users_controller.delete_user(user_id)
+
+    mock_use_case.delete_user.assert_awaited_once()

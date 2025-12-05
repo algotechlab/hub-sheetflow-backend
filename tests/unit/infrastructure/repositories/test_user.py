@@ -170,14 +170,18 @@ async def test_list_users_success_no_filter(users_repo, mock_session):
 
     # Assert: Verifica query sem filtro, ordem, e resultado
     actual_query = mock_session.execute.await_args[0][0]
-    expected_query = select(
-        User.id,
-        User.username,
-        User.email,
-        User.role,
-        User.created_at,
-        User.updated_at,
-    ).order_by(User.created_at)
+    expected_query = (
+        select(
+            User.id,
+            User.username,
+            User.email,
+            User.role,
+            User.created_at,
+            User.updated_at,
+        )
+        .where(User.is_deleted.__eq__(False))
+        .order_by(User.created_at)
+    )
     assert str(actual_query) == str(expected_query)
     assert len(result) == count
     assert result[0].username == 'user1'
@@ -219,6 +223,7 @@ async def test_list_users_success_with_filter(users_repo, mock_session):
             User.created_at,
             User.updated_at,
         )
+        .where(User.is_deleted.__eq__(False))
         .order_by(User.created_at)
         .filter(User.username == 'john')
     )
@@ -311,6 +316,65 @@ async def test_update_user_exception(users_repo, mock_session):
     # Act & Assert: Levanta DatabaseException e rollback
     with pytest.raises(DatabaseException, match='Simulated DB error'):
         await users_repo.update_user(user_id, input_dto)
+
+    mock_session.rollback.assert_awaited_once()
+    mock_session.commit.assert_not_awaited()
+    mock_session.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_delete_user_success(users_repo, mock_session):
+    # Arrange: Mock user_id, stmt, e resposta (usuário atualizado)
+    user_id = uuid4()
+    mock_updated_user = MagicMock(id=user_id, is_deleted=True)  # Simula após update
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = mock_updated_user
+    mock_session.execute.return_value = mock_result
+    mock_session.commit.return_value = None
+
+    # Act: Chama o método
+    result = await users_repo.delete_user(user_id)
+
+    actual_stmt = mock_session.execute.await_args[0][0]
+    expected_stmt = (
+        sqlalchemy_update(User)
+        .where(User.id.__eq__(user_id), User.is_deleted.__eq__(False))
+        .values(is_deleted=True)
+        .returning(User)
+    )
+    assert str(actual_stmt) == str(expected_stmt)
+    mock_session.commit.assert_awaited_once()
+    mock_session.rollback.assert_not_called()
+    assert result is True
+
+
+@pytest.mark.asyncio
+async def test_delete_user_not_found_or_already_deleted(users_repo, mock_session):
+    # Arrange: Sem rows afetadas (não encontrado ou já deletado)
+    user_id = uuid4()
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = None
+    mock_session.execute.return_value = mock_result
+    mock_session.commit.return_value = None
+
+    # Act
+    result = await users_repo.delete_user(user_id)
+
+    # Assert: Commit ainda chamado, mas retorna False
+    mock_session.commit.assert_awaited_once()
+    mock_session.rollback.assert_not_called()
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_delete_user_exception(users_repo, mock_session):
+    # Arrange: Simula exceção na execute
+    user_id = uuid4()
+    mock_session.execute.side_effect = ValueError('Simulated DB error')
+
+    # Act & Assert: Levanta DatabaseException e rollback
+    with pytest.raises(DatabaseException, match='Simulated DB error'):
+        await users_repo.delete_user(user_id)
 
     mock_session.rollback.assert_awaited_once()
     mock_session.commit.assert_not_awaited()

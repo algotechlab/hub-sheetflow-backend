@@ -49,14 +49,18 @@ class UsersRepositoryPostgres(UsersRepositoriesInterface):
 
     async def list_users(self, pagination: PaginationParamsDTO) -> List[UserOutDto]:
         try:
-            query = select(
-                User.id,
-                User.username,
-                User.email,
-                User.role,
-                User.created_at,
-                User.updated_at,
-            ).order_by(User.created_at)
+            query = (
+                select(
+                    User.id,
+                    User.username,
+                    User.email,
+                    User.role,
+                    User.created_at,
+                    User.updated_at,
+                )
+                .where(User.is_deleted.__eq__(False))
+                .order_by(User.created_at)
+            )
 
             if pagination.filter_by and pagination.filter_value:
                 query = query.filter(
@@ -76,7 +80,7 @@ class UsersRepositoryPostgres(UsersRepositoriesInterface):
 
             stmt = (
                 update(User)
-                .where(User.id == user_id)
+                .where(User.id.__eq__(user_id))
                 .values(**update_data)
                 .returning(User)
             )
@@ -91,6 +95,24 @@ class UsersRepositoryPostgres(UsersRepositoriesInterface):
 
             return UserOutDto.model_validate(updated_user)
 
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def delete_user(self, user_id: UUID) -> bool:
+        try:
+            stmt = (
+                update(User)
+                .where(User.id.__eq__(user_id), User.is_deleted.__eq__(False))
+                .values(is_deleted=True)
+                .returning(User)
+            )
+            result = await self.session.execute(stmt)
+            await self.session.commit()
+
+            updated_user = result.scalar_one_or_none()
+
+            return updated_user is not None
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

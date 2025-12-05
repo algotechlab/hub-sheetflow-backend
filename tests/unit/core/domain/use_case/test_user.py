@@ -168,8 +168,49 @@ async def test_update_user_not_found(users_use_case, mock_service):
 
     # Act & Assert: Levanta UserNotFoundException com mensagem correta
     with pytest.raises(
-        UserNotFoundException, match=f'Esse {user_id} nao foi encontrado.'
+        UserNotFoundException, match=f'Esse {user_id} não foi encontrado.'
     ):
         await users_use_case.update_user(user_id, input_dto)
 
     mock_service.update_user.assert_awaited_once_with(user_id, input_dto)
+
+
+@pytest.mark.asyncio
+async def test_delete_user_success(users_use_case, mock_service):
+    # Arrange: Mock user_id e service retorna True (deletado)
+    user_id = uuid4()
+    mock_service.delete_user.return_value = True
+
+    # Act: Chama o método do use case
+    await users_use_case.delete_user(user_id)
+
+    # Assert: Verifica chamada ao service, sem exceção
+    mock_service.delete_user.assert_awaited_once_with(user_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_user_not_found(users_use_case, mock_service):
+    # Arrange: Service retorna None (não encontrado)
+    user_id = uuid4()
+    mock_service.delete_user.return_value = None
+
+    # Act & Assert: Levanta UserNotFoundException com mensagem correta
+    with pytest.raises(
+        UserNotFoundException, match=f'Esse {user_id} não foi encontrado.'
+    ):
+        await users_use_case.delete_user(user_id)
+
+    mock_service.delete_user.assert_awaited_once_with(user_id)
+
+
+@pytest.mark.asyncio
+async def test_delete_user_handles_exception(users_use_case, mock_service):
+    # Arrange: Configura o service pra levantar outra exceção
+    user_id = uuid4()
+    mock_service.delete_user.side_effect = ValueError('Simulated service error')
+
+    # Act & Assert: Verifica se propaga a exceção original
+    with pytest.raises(ValueError, match='Simulated service error'):
+        await users_use_case.delete_user(user_id)
+
+    mock_service.delete_user.assert_awaited_once()

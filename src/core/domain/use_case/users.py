@@ -30,5 +30,11 @@ class UsersUseCase:
     async def update_user(self, user_id: UUID, users: UpdateUserDto) -> UserOutDto:
         result = await self.users_service.update_user(user_id, users)
         if result is None:
-            raise UserNotFoundException(f'Esse {user_id} nao foi encontrado.')
+            raise UserNotFoundException(f'Esse {user_id} não foi encontrado.')
         return result
+
+    async def delete_user(self, user_id: UUID) -> None:
+        result = await self.users_service.delete_user(user_id)
+
+        if result is None:
+            raise UserNotFoundException(f'Esse {user_id} não foi encontrado.')

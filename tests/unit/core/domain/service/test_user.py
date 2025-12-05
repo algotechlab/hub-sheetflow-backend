@@ -129,3 +129,44 @@ async def test_update_user_success(users_service, mock_repository):
     mock_repository.update_user.assert_awaited_once_with(user_id, input_dto)
     assert result == mock_response
     assert isinstance(result, UserOutDto)
+
+
+@pytest.mark.asyncio
+async def test_delete_user_success(users_service, mock_repository):
+    # Arrange: Mock user_id e repo retorna True (deletado)
+    user_id = uuid4()
+    mock_repository.delete_user.return_value = True
+
+    # Act: Chama o método do service
+    result = await users_service.delete_user(user_id)
+
+    # Assert: Verifica chamada ao repo e retorno True
+    mock_repository.delete_user.assert_awaited_once_with(user_id)
+    assert result is True
+
+
+@pytest.mark.asyncio
+async def test_delete_user_not_found(users_service, mock_repository):
+    # Arrange: Repo retorna False (não encontrado)
+    user_id = uuid4()
+    mock_repository.delete_user.return_value = False
+
+    # Act
+    result = await users_service.delete_user(user_id)
+
+    # Assert: Retorna False
+    mock_repository.delete_user.assert_awaited_once_with(user_id)
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_delete_user_handles_exception(users_service, mock_repository):
+    # Arrange: Configura o repo pra levantar exceção
+    user_id = uuid4()
+    mock_repository.delete_user.side_effect = ValueError('Simulated repo error')
+
+    # Act & Assert: Verifica se propaga a exceção
+    with pytest.raises(ValueError, match='Simulated repo error'):
+        await users_service.delete_user(user_id)
+
+    mock_repository.delete_user.assert_awaited_once()

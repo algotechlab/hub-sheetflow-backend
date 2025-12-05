@@ -70,3 +70,12 @@ async def update_user(
     users: UserUpdateBaseSchema,
 ) -> UserOutSchema:
     return await controller.update_user(user_id, users)
+
+
+@router.delete(
+    '/{user_id}',
+    description='Rota para deletar usuário',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_user(controller: UsersRepositoryDep, user_id: UUID) -> None:
+    return await controller.delete_user(user_id)
