@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.users import UserBaseDto, UserOutDto
+from src.core.domain.dtos.users import UpdateUserDto, UserBaseDto, UserOutDto
 
 
 @pytest.mark.asyncio
@@ -105,3 +105,27 @@ async def test_list_users_handles_exception(users_service, mock_repository):
         await users_service.list_users(input_dto)
 
     mock_repository.list_users.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_update_user_success(users_service, mock_repository):
+    # Arrange: Mock input DTO e resposta do repo (usuário atualizado)
+    user_id = uuid4()
+    input_dto = UpdateUserDto(username='updated_user', email='updated@example.com')
+    mock_response = UserOutDto(
+        id=user_id,
+        username='updated_user',
+        email='updated@example.com',
+        role='user',
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+    mock_repository.update_user.return_value = mock_response
+
+    # Act: Chama o método do service
+    result = await users_service.update_user(user_id, input_dto)
+
+    # Assert: Verifica chamada ao repo e resultado
+    mock_repository.update_user.assert_awaited_once_with(user_id, input_dto)
+    assert result == mock_response
+    assert isinstance(result, UserOutDto)

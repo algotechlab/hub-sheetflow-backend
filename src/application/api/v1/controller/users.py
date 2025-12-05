@@ -1,9 +1,14 @@
 from typing import List
+from uuid import UUID
 
 from src.application.api.v1.schemas.common.pagination import PaginationParamsBaseSchema
-from src.application.api.v1.schemas.users import UserBaseSchema, UserOutSchema
+from src.application.api.v1.schemas.users import (
+    UserBaseSchema,
+    UserOutSchema,
+    UserUpdateBaseSchema,
+)
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.users import UserBaseDto
+from src.core.domain.dtos.users import UpdateUserDto, UserBaseDto
 from src.core.domain.use_case.users import UsersUseCase
 
 
@@ -22,3 +27,10 @@ class UsersController:
         pagination_dto = PaginationParamsDTO(**pagination.model_dump())
         users = await self.use_case.list_users(pagination_dto)
         return [UserOutSchema.model_validate(user) for user in users]
+
+    async def update_user(
+        self, user_id: UUID, users: UserUpdateBaseSchema
+    ) -> UserOutSchema:
+        users_dto = UpdateUserDto(**users.model_dump())
+        users_case = await self.use_case.update_user(user_id, users_dto)
+        return UserOutSchema.model_validate(users_case)

@@ -1,11 +1,12 @@
-from typing import List
+from typing import List, Union
+from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.users import UserBaseDto, UserOutDto
+from src.core.domain.dtos.users import UpdateUserDto, UserBaseDto, UserOutDto
 from src.core.domain.exceptions.users import (
     DuplicatedException,
     UserEmailDuplicatedException,
@@ -63,6 +64,33 @@ class UsersRepositoryPostgres(UsersRepositoriesInterface):
                 )
             result = await self.session.execute(query)
             return [UserOutDto.model_validate(row._mapping) for row in result.all()]
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def update_user(
+        self, user_id: UUID, user_update: UpdateUserDto
+    ) -> Union[UserOutDto, None]:
+        try:
+            update_data = user_update.model_dump(exclude_unset=True)
+
+            stmt = (
+                update(User)
+                .where(User.id == user_id)
+                .values(**update_data)
+                .returning(User)
+            )
+
+            result = await self.session.execute(stmt)
+            await self.session.commit()
+
+            updated_user = result.scalar_one_or_none()
+
+            if updated_user is None:
+                return None
+
+            return UserOutDto.model_validate(updated_user)
+
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

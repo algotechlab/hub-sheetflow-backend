@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
-from fastapi import status
-from src.application.api.v1.schemas.users import UserOutSchema
+from fastapi import HTTPException, status
+from src.application.api.v1.schemas.users import UserOutSchema, UserUpdateBaseSchema
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 
 
@@ -98,3 +98,71 @@ async def test_list_users_success_with_filter(client, override_dependency):
     override_dependency.list_users.assert_called_once_with(
         PaginationParamsDTO(filter_by='username', filter_value='johndoe')
     )
+
+
+@pytest.mark.asyncio
+async def test_update_user_success(client, override_dependency, generate_uuid):
+    # Arrange: Configura mock para sucesso
+    user_id = UUID(generate_uuid)  # Converte para UUID
+    input_data = {'username': 'updated_user', 'email': 'updated@example.com'}
+    mock_response = UserOutSchema(
+        id=user_id,  # Usa o mesmo UUID
+        username='updated_user',
+        email='updated@example.com',
+        role='user',  # Assuma role se necessário
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+    override_dependency.update_user.return_value = mock_response
+
+    # Act: Faz a requisição PATCH
+    response = client.patch(f'/api/v1/users/{generate_uuid}', json=input_data)
+
+    # Assert: Verifica status e resposta
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json() == {
+        'id': str(mock_response.id),
+        'username': 'updated_user',
+        'email': 'updated@example.com',
+        'role': 'user',
+        'created_at': mock_response.created_at.isoformat(),
+        'updated_at': mock_response.updated_at.isoformat(),
+    }
+    override_dependency.update_user.assert_called_once_with(
+        user_id, UserUpdateBaseSchema(**input_data)
+    )
+
+
+def test_update_user_not_found(client, override_dependency, generate_uuid):
+    # Arrange: Configura o mock para levantar HTTPException 404
+    input_data = {
+        'username': 'updated_user',
+        'email': 'updated@example.com',
+    }  # Dados válidos para passar validação
+    override_dependency.update_user.side_effect = HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail='Usuário não encontrado'
+    )
+
+    # Act: Faz a requisição PATCH
+    response = client.patch(f'/api/v1/users/{generate_uuid}', json=input_data)
+
+    # Assert: Verifica status e detalhe
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.json()['detail'] == 'Usuário não encontrado'
+
+
+@pytest.mark.asyncio
+async def test_update_user_validation_error(client, override_dependency, generate_uuid):
+    # Arrange: Dados inválidos para UserUpdateBaseSchema (ex: email inválid)
+    input_data = {
+        'username': 'updated_user',
+        'email': 'invalid-email',  # Assuma que valida EmailStr
+    }
+
+    # Act: Faz a requisição PATCH
+    response = client.patch(f'/api/v1/users/{generate_uuid}', json=input_data)
+
+    # Assert: Verifica erro de validação 422
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    # Pode assertar os detalhes do erro se quiser mais precisão
+    assert 'detail' in response.json()
