@@ -11,6 +11,6 @@ class DummySession:
 async def test_get_users_controller_returns_instance():
     session = DummySession()
 
-    controller = await get_users_controller(session)  # executa dependência
+    controller = await get_users_controller(session)
 
     assert isinstance(controller, UsersController)
