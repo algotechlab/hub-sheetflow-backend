@@ -1,7 +1,8 @@
-from typing import List
+from typing import List, Union
+from uuid import UUID
 
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.users import UserBaseDto, UserOutDto
+from src.core.domain.dtos.users import UpdateUserDto, UserBaseDto, UserOutDto
 from src.core.domain.interface.users import UsersRepositoriesInterface
 
 
@@ -14,3 +15,8 @@ class UsersService:
 
     async def list_users(self, pagination: PaginationParamsDTO) -> List[UserOutDto]:
         return await self.users_repository.list_users(pagination)
+
+    async def update_user(
+        self, user_id: UUID, users: UpdateUserDto
+    ) -> Union[UserOutDto, None]:
+        return await self.users_repository.update_user(user_id, users)

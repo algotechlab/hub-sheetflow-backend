@@ -5,9 +5,13 @@ from unittest.mock import MagicMock
 
 import pytest
 from src.application.api.v1.schemas.common.pagination import PaginationParamsBaseSchema
-from src.application.api.v1.schemas.users import UserBaseSchema, UserOutSchema
+from src.application.api.v1.schemas.users import (
+    UserBaseSchema,
+    UserOutSchema,
+    UserUpdateBaseSchema,
+)
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.users import UserBaseDto
+from src.core.domain.dtos.users import UpdateUserDto, UserBaseDto
 
 
 @pytest.mark.asyncio
@@ -114,3 +118,32 @@ async def test_list_users_handles_exception(users_controller, mock_use_case):
         await users_controller.list_users(input_schema)
 
     mock_use_case.list_users.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_update_user_success(users_controller, mock_use_case):
+    # Arrange: Mock input schema, DTO e resposta do use_case
+    user_id = uuid.uuid4()
+    input_schema = UserUpdateBaseSchema(
+        username='updated_user', email='updated@example.com'
+    )  # Assuma campos opcionais
+    expected_dto = UpdateUserDto(username='updated_user', email='updated@example.com')
+    mock_response = MagicMock(
+        id=user_id,
+        username='updated_user',
+        email='updated@example.com',
+        role='user',
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+    mock_use_case.update_user.return_value = mock_response
+
+    # Act: Chama o método do controller
+    result = await users_controller.update_user(user_id, input_schema)
+
+    # Assert: Verifica a conversão, chamada e resultado
+    mock_use_case.update_user.assert_awaited_once_with(user_id, expected_dto)
+    assert isinstance(result, UserOutSchema)
+    assert result.id == user_id
+    assert result.username == 'updated_user'
+    assert result.email == 'updated@example.com'

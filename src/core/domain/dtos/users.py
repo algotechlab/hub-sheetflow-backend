@@ -27,3 +27,8 @@ class UserOutDto(BaseModel):
     updated_at: datetime
 
     model_config = {'from_attributes': True}
+
+
+class UpdateUserDto(BaseModel):
+    username: str
+    email: EmailStr

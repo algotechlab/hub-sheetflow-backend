@@ -4,9 +4,10 @@ from uuid import uuid4
 
 import pytest
 from sqlalchemy import select
+from sqlalchemy import update as sqlalchemy_update
 from sqlalchemy.exc import IntegrityError
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.users import UserBaseDto, UserOutDto
+from src.core.domain.dtos.users import UpdateUserDto, UserBaseDto, UserOutDto
 from src.core.domain.exceptions.users import (
     DuplicatedException,
     UserEmailDuplicatedException,
@@ -238,4 +239,79 @@ async def test_list_users_exception(users_repo, mock_session):
         await users_repo.list_users(input_dto)
 
     mock_session.rollback.assert_awaited_once()
+    mock_session.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_update_user_success(users_repo, mock_session):
+    # Arrange: Mock input DTO, stmt, e resposta (usuário atualizado)
+    user_id = uuid4()
+    input_dto = UpdateUserDto(username='updated_user', email='updated@example.com')
+    mock_updated_user = MagicMock(
+        id=user_id,
+        username='updated_user',
+        email='updated@example.com',
+        role='user',
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = mock_updated_user
+    mock_session.execute.return_value = mock_result
+    mock_session.commit.return_value = None
+
+    # Act: Chama o método
+    result = await users_repo.update_user(user_id, input_dto)
+
+    # Assert: Verifica stmt com valores corretos, commit, e resultado
+    actual_stmt = mock_session.execute.await_args[0][0]
+    expected_values = input_dto.model_dump(
+        exclude_unset=True
+    )  # Deve ser {'username': 'updated_user', 'email': 'updated@example.com'}
+    assert str(actual_stmt) == str(
+        sqlalchemy_update(User)
+        .where(User.id == user_id)
+        .values(**expected_values)
+        .returning(User)
+    )
+    mock_session.commit.assert_awaited_once()
+    mock_session.rollback.assert_not_called()
+    assert isinstance(result, UserOutDto)
+    assert result.id == user_id
+    assert result.username == 'updated_user'
+    assert result.email == 'updated@example.com'
+
+
+@pytest.mark.asyncio
+async def test_update_user_not_found(users_repo, mock_session):
+    # Arrange: Repo retorna None (sem rows afetadas)
+    user_id = uuid4()
+    input_dto = UpdateUserDto(username='updated_user', email='updated@example.com')
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = None
+    mock_session.execute.return_value = mock_result
+    mock_session.commit.return_value = None
+
+    # Act
+    result = await users_repo.update_user(user_id, input_dto)
+
+    # Assert: Retorna None, commit ainda chamado (mas sem changes)
+    mock_session.commit.assert_awaited_once()
+    mock_session.rollback.assert_not_called()
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_update_user_exception(users_repo, mock_session):
+    # Arrange: Simula exceção na execute
+    user_id = uuid4()
+    input_dto = UpdateUserDto(username='updated_user', email='updated@example.com')
+    mock_session.execute.side_effect = ValueError('Simulated DB error')
+
+    # Act & Assert: Levanta DatabaseException e rollback
+    with pytest.raises(DatabaseException, match='Simulated DB error'):
+        await users_repo.update_user(user_id, input_dto)
+
+    mock_session.rollback.assert_awaited_once()
+    mock_session.commit.assert_not_awaited()
     mock_session.execute.assert_awaited_once()

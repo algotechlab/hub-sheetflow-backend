@@ -15,9 +15,7 @@ from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 def test_pagination_params_valid(filter_by, filter_value, should_pass):
     # Act & Assert
     if should_pass:
-        params = PaginationParamsDTO(
-            filter_by=filter_by, filter_value=filter_value
-        )
+        params = PaginationParamsDTO(filter_by=filter_by, filter_value=filter_value)
         assert params.filter_by == filter_by
         assert params.filter_value == filter_value
     else:

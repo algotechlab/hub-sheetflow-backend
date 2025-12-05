@@ -4,8 +4,11 @@ from uuid import uuid4
 
 import pytest
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.users import UserBaseDto, UserOutDto
-from src.core.domain.exceptions.users import UserEmailDuplicatedException
+from src.core.domain.dtos.users import UpdateUserDto, UserBaseDto, UserOutDto
+from src.core.domain.exceptions.users import (
+    UserEmailDuplicatedException,
+    UserNotFoundException,
+)
 
 
 @pytest.mark.asyncio
@@ -128,3 +131,45 @@ async def test_list_users_handles_exception(users_use_case, mock_service):
         await users_use_case.list_users(input_dto)
 
     mock_service.list_users.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_update_user_success(users_use_case, mock_service):
+    # Arrange: Mock input DTO e resposta do service (usuário atualizado)
+    user_id = uuid4()
+    input_dto = UpdateUserDto(username='updated_user', email='updated@example.com')
+    mock_response = UserOutDto(
+        id=user_id,
+        username='updated_user',
+        email='updated@example.com',
+        role='user',
+        created_at=datetime.now(),
+        updated_at=datetime.now(),
+    )
+    mock_service.update_user.return_value = mock_response
+
+    # Act: Chama o método do use case
+    result = await users_use_case.update_user(user_id, input_dto)
+
+    # Assert: Verifica chamada ao service e resultado
+    mock_service.update_user.assert_awaited_once_with(user_id, input_dto)
+    assert result == mock_response
+    assert isinstance(result, UserOutDto)
+
+
+@pytest.mark.asyncio
+async def test_update_user_not_found(users_use_case, mock_service):
+    # Arrange: Service retorna None (usuário não encontrado)
+    user_id = uuid4()
+    input_dto = UpdateUserDto(
+        username='updated_user', email='updated@example.com'
+    )  # Adicionei email obrigatório
+    mock_service.update_user.return_value = None
+
+    # Act & Assert: Levanta UserNotFoundException com mensagem correta
+    with pytest.raises(
+        UserNotFoundException, match=f'Esse {user_id} nao foi encontrado.'
+    ):
+        await users_use_case.update_user(user_id, input_dto)
+
+    mock_service.update_user.assert_awaited_once_with(user_id, input_dto)

@@ -1,9 +1,14 @@
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, status
 from src.application.api.v1.dependencies.common.pagination import PaginationParamsDep
 from src.application.api.v1.dependencies.users import UsersRepositoryDep
-from src.application.api.v1.schemas.users import UserBaseSchema, UserOutSchema
+from src.application.api.v1.schemas.users import (
+    UserBaseSchema,
+    UserOutSchema,
+    UserUpdateBaseSchema,
+)
 
 tags_metadata = {
     'name': 'Usuários',
@@ -43,3 +48,25 @@ async def list_users(
     controller: UsersRepositoryDep, pagination: PaginationParamsDep
 ) -> List[UserOutSchema]:
     return await controller.list_users(pagination)
+
+
+@router.patch(
+    '/{user_id}',
+    description='Rota para atualizar usuário',
+    status_code=status.HTTP_200_OK,
+    response_model=UserOutSchema,
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Usuário atualizado com sucesso',
+        },
+        status.HTTP_404_NOT_FOUND: {
+            'description': 'Usuário não encontrado',
+        },
+    },
+)
+async def update_user(
+    controller: UsersRepositoryDep,
+    user_id: UUID,
+    users: UserUpdateBaseSchema,
+) -> UserOutSchema:
+    return await controller.update_user(user_id, users)

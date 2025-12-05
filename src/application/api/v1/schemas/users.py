@@ -33,3 +33,8 @@ class UserOutSchema(BaseModel):
     updated_at: datetime
 
     model_config = {'from_attributes': True}
+
+
+class UserUpdateBaseSchema(BaseModel):
+    username: str = Field(min_length=3, max_length=20)
+    email: EmailStr = Field(min_length=5, max_length=255)

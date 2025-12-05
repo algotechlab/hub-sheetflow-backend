@@ -13,4 +13,4 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 ## [v0.0.1] - 2025-12-04
 
 ### Modulo do usuário
-Cadastro de usuários com retorno completo e mapeamento completo de dados de entrada e saída, modulo de usuário sera manuseado a exclusão do `soft-delete`, e filtro por nome somente, e a edição do nome do usuário.
+CRUD completo de usuário,
