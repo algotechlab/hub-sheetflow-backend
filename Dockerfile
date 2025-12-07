@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --upgrade pip && pip install poetry
 
+RUN pip install asyncpg
+
 COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false
