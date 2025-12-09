@@ -33,7 +33,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - SQLALCHEMY_DATABASE_URI=postgresql://postgres:postgres@fastapi_database:5432/sheetflow
+      - SQLALCHEMY_DATABASE_URI=postgresql+asyncpg://postgres:postgres@fastapi_database:5432/sheetflow
       - DEBUG=True
       - ALLOWED_HOSTS=localhost,127.0.0.1,fast_api-sheetflow
     volumes:

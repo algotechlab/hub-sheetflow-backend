@@ -2,26 +2,30 @@ FROM python:3.13-slim
 
 WORKDIR /src
 
+# Dependências do Postgres + compilação
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     build-essential \
-    postgresql-client \
-    curl \
+    gcc \
     && rm -rf /var/lib/apt/lists/*
 
+# Poetry
 RUN pip install --upgrade pip && pip install poetry
 
-RUN pip install asyncpg
-
+# Copiar manifesto antes do código
 COPY pyproject.toml poetry.lock ./
 
+# IMPORTANTE: desabilitar venv do poetry
 RUN poetry config virtualenvs.create false
 
-# desabilita instalação do próprio projeto (evita erro do README)
-RUN poetry install --no-interaction --no-ansi --no-root
+# Instalar libs (sem psycopg2)
+RUN poetry install --no-root --no-interaction --no-ansi
 
+# Agora copiar código
 COPY src /src/src
+COPY alembic.ini .
+COPY migrations /src/migrations
+COPY .env .
 
-EXPOSE 8000
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Rodar migrações no container
+CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000

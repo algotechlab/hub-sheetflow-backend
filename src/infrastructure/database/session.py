@@ -29,7 +29,7 @@ def get_engine() -> AsyncEngine:
             pool_timeout=settings.DATABASE_TIMEOUT,
             pool_pre_ping=True,
         )
-
+    print("Coletando a url",settings.SQLALCHEMY_DATABASE_URI)
     return _engine
 
 

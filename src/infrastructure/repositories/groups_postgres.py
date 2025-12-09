@@ -12,7 +12,6 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
 
     async def add_groups(self, groups: GroupBaseDto) -> GroupOutDto:
         try:
-            print('Grupo coletado', groups)
             db_groups = Groups(**groups.model_dump())
             self.session.add(db_groups)
             await self.session.commit()
