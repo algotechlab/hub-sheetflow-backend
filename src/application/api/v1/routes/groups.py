@@ -7,7 +7,9 @@ from src.application.api.v1.schemas.groups import (
     GroupBaseSchema,
     GroupOutSchema,
     GroupsListOutSchema,
-    GrupsUpdateSchema,
+    GroupsMappingsOutSchema,
+    GroupsMappinsgSchema,
+    GroupsUpdateSchema,
 )
 
 tags_metadata = {
@@ -69,7 +71,7 @@ async def list_groups(controller: GroupsRepositoryDep) -> List[GroupsListOutSche
     },
 )
 async def update_groups(
-    controller: GroupsRepositoryDep, group_id: UUID, group: GrupsUpdateSchema
+    controller: GroupsRepositoryDep, group_id: UUID, group: GroupsUpdateSchema
 ) -> GroupOutSchema:
     return await controller.update_group(group_id, group)
 
@@ -81,3 +83,40 @@ async def update_groups(
 )
 async def delete_groups(controller: GroupsRepositoryDep, group_id: UUID) -> None:
     return await controller.delete_group(group_id)
+
+
+@router.post(
+    '/{group_id}/users',
+    description='Rota para adicionar um usuário ao grupo',
+    status_code=status.HTTP_201_CREATED,
+    response_model=GroupsMappingsOutSchema,
+    responses={
+        status.HTTP_201_CREATED: {
+            'description': 'Usuário adicionado ao grupo com sucesso',
+        },
+    },
+)
+async def add_user_to_group(
+    controller: GroupsRepositoryDep, group_id: UUID, mappings: GroupsMappinsgSchema
+) -> GroupsMappingsOutSchema:
+    return await controller.add_user_to_group(group_id, mappings)
+
+
+@router.patch(
+    '/{group_id}/users',
+    description='Rota para atualizar o usuário do grupo',
+    status_code=status.HTTP_200_OK,
+    response_model=List[GroupsMappingsOutSchema],
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Tabela de mapeamento atualizada com sucesso',
+        },
+        status.HTTP_404_NOT_FOUND: {
+            'description': 'Grupo nao encontrado',
+        },
+    },
+)
+async def updated_user_to_group(
+    controller: GroupsRepositoryDep, group_id: UUID, mappings: GroupsMappinsgSchema
+) -> GroupsMappingsOutSchema:
+    return await controller.updated_user_to_group(group_id, mappings)

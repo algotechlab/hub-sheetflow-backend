@@ -4,9 +4,11 @@ from src.application.api.v1.schemas.groups import (
     GroupBaseSchema,
     GroupOutSchema,
     GroupsListOutSchema,
-    GrupsUpdateSchema,
+    GroupsMappingsOutSchema,
+    GroupsMappinsgSchema,
+    GroupsUpdateSchema,
 )
-from src.core.domain.dtos.groups import GroupBaseDto, GroupsUpdateDto
+from src.core.domain.dtos.groups import GroupBaseDto, GroupsMappingsDto, GroupsUpdateDto
 from src.core.domain.use_case.groups import GroupsUseCase
 
 
@@ -24,7 +26,7 @@ class GroupsController:
         return [GroupsListOutSchema.model_validate(group) for group in groups_case]
 
     async def update_group(
-        self, group_id: UUID, group: GrupsUpdateSchema
+        self, group_id: UUID, group: GroupsUpdateSchema
     ) -> GroupOutSchema:
         group_dto = GroupsUpdateDto(**group.model_dump())
         group_case = await self.use_case.update_group(group_id, group_dto)
@@ -32,3 +34,19 @@ class GroupsController:
 
     async def delete_group(self, group_id: UUID) -> None:
         return await self.use_case.delete_group(group_id)
+
+    async def add_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappinsgSchema
+    ) -> GroupsMappingsOutSchema:
+        mappings_dto = GroupsMappingsDto(**mappings.model_dump())
+        mappings_case = await self.use_case.add_user_to_group(group_id, mappings_dto)
+        return GroupsMappingsOutSchema.model_validate(mappings_case)
+
+    async def updated_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappinsgSchema
+    ) -> GroupsMappingsOutSchema:
+        mappings_dto = GroupsMappingsDto(**mappings.model_dump())
+        mappings_case = await self.use_case.updated_user_to_group(
+            group_id, mappings_dto
+        )
+        return GroupsMappingsOutSchema.model_validate(mappings_case)

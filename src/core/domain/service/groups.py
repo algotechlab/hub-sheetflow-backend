@@ -5,6 +5,8 @@ from src.core.domain.dtos.groups import (
     GroupBaseDto,
     GroupOutDto,
     GroupsListOutDto,
+    GroupsMappingsDto,
+    GroupsMappingsOutDto,
     GroupsUpdateDto,
 )
 from src.core.domain.interface.groups import GroupsRepositoriesInterface
@@ -25,3 +27,13 @@ class GroupsService:
 
     async def delete_group(self, group_id: UUID) -> bool:
         return await self.groups_repository.delete_group(group_id)
+
+    async def add_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappingsDto
+    ) -> GroupsMappingsOutDto:
+        return await self.groups_repository.add_user_to_group(group_id, mappings)
+
+    async def updated_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappingsDto
+    ) -> GroupsMappingsOutDto:
+        return await self.groups_repository.updated_user_to_group(group_id, mappings)

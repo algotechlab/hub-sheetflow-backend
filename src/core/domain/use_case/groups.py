@@ -1,6 +1,10 @@
 from typing import List
 from uuid import UUID
 
+from src.application.api.v1.schemas.groups import (
+    GroupsMappingsOutSchema,
+    GroupsMappinsgSchema,
+)
 from src.core.domain.dtos.groups import (
     GroupBaseDto,
     GroupOutDto,
@@ -32,3 +36,13 @@ class GroupsUseCase:
 
         if result is None:
             raise GroupNotFoundException(f'Esse {group_id} não foi encontrado.')
+
+    async def add_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappinsgSchema
+    ) -> GroupsMappingsOutSchema:
+        return await self.groups_service.add_user_to_group(group_id, mappings)
+
+    async def updated_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappinsgSchema
+    ) -> GroupsMappingsOutSchema:
+        return await self.groups_service.updated_user_to_group(group_id, mappings)

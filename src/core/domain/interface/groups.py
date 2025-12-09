@@ -6,6 +6,8 @@ from src.core.domain.dtos.groups import (
     GroupBaseDto,
     GroupOutDto,
     GroupsListOutDto,
+    GroupsMappingsDto,
+    GroupsMappingsOutDto,
     GroupsUpdateDto,
 )
 
@@ -24,3 +26,13 @@ class GroupsRepositoriesInterface(ABC):
 
     @abstractmethod
     async def delete_group(self, group_id: UUID) -> bool: ...
+
+    @abstractmethod
+    async def add_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappingsDto
+    ) -> GroupsMappingsOutDto: ...
+
+    @abstractmethod
+    async def updated_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappingsDto
+    ) -> GroupsMappingsOutDto: ...
