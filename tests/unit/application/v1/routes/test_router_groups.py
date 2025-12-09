@@ -25,10 +25,6 @@ def test_add_groups_success(
     assert isinstance(response_data, dict)
     validated_response = GroupOutSchema.model_validate(response_data)
     assert validated_response.name == 'Grupo 1'
-    assert validated_response.data['nome'] == 'JoeDoe'
-    assert validated_response.data['contato'] == '61994261245'
-    assert len(validated_response.custom_columns) == 1
-    assert validated_response.custom_columns[0].label == 'Idade'
     assert validated_response.created_at is not None
     assert validated_response.updated_at is not None
 

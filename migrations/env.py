@@ -6,18 +6,15 @@ from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy.engine import Connection
 
+from src.core.config.settings import get_settings
 from src.core.domain.models.base import BaseModel
 from src.core.domain.models import load_all_models
 
+settings = get_settings()
+
+
 config = context.config
 fileConfig(config.config_file_name)
-
-DATABASE_URL = os.getenv(
-    "SQLALCHEMY_DATABASE_URI",
-    os.getenv("SQLALCHEMY_DATABASE_URI")
-)
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL para migrações não foi definida!")
 
 load_all_models()
 target_metadata = BaseModel.metadata
@@ -25,7 +22,7 @@ target_metadata = BaseModel.metadata
 
 def run_migrations_offline():
     context.configure(
-        url=DATABASE_URL,
+        url=settings.SQLALCHEMY_DATABASE_URI,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -48,7 +45,7 @@ def do_run_migrations(connection: Connection):
 
 async def run_migrations_online():
     engine = create_async_engine(
-        DATABASE_URL,
+        settings.SQLALCHEMY_DATABASE_URI,
         future=True,
     )
     async with engine.connect() as conn:
