@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from src.application.api.v1.controller.groups import GroupsController
 from src.application.api.v1.controller.users import UsersController
 from src.application.api.v1.dependencies.users import get_users_controller
-from src.application.api.v1.schemas.groups import CustomColumn, GroupBaseSchema
+from src.application.api.v1.schemas.groups import GroupBaseSchema
 from src.core.config.settings import get_settings
 from src.core.domain.dtos.groups import GroupOutDto
 from src.core.domain.interface.users import UsersRepositoriesInterface
@@ -102,17 +102,6 @@ def generate_groups_schemas():
     """
     return GroupBaseSchema(
         name='Grupo 1',
-        data={
-            'observacao': 'Deixando os clientes mais livres',
-            'local': 'SERRA',
-            'nome': 'JoeDoe',
-            'contato': '61994261245',
-            'cpfCnpj': '06472580138',
-            'pastaDrive': 'DRIVE',
-            'vara': 'Financeiro',
-            'custom_1': '30',
-        },
-        custom_columns=[CustomColumn(name='custom_1', label='Idade', type='text')],
     )
 
 
@@ -134,13 +123,9 @@ def mock_group_out_dto(generate_groups_schemas):
     input_schema = generate_groups_schemas
     fake_id = uuid.uuid4()
 
-    custom_cols_dicts = [col.model_dump() for col in input_schema.custom_columns]
-
     return GroupOutDto(
         id=fake_id,
         name=input_schema.name,
-        data=input_schema.data,
-        custom_columns=custom_cols_dicts,
         created_at=datetime.now(),
         updated_at=datetime.now(),
     )

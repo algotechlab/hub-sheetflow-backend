@@ -26,9 +26,5 @@ async def test_add_groups_success(
     assert isinstance(result.id, uuid.UUID)
     assert result.id == expected_output.id
     assert result.name == 'Grupo 1'
-    assert result.data['nome'] == 'JoeDoe'
-    assert result.data['contato'] == '61994261245'
-    assert len(result.custom_columns) == 1
-    assert result.custom_columns[0].label == 'Idade'
     assert result.created_at is not None
     assert result.updated_at is not None
