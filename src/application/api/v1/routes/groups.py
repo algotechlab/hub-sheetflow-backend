@@ -2,12 +2,16 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, status
+from src.application.api.v1.dependencies.common.pagination import PaginationParamsDep
 from src.application.api.v1.dependencies.groups import GroupsRepositoryDep
 from src.application.api.v1.schemas.groups import (
     GroupBaseSchema,
     GroupOutSchema,
     GroupsListOutSchema,
-    GrupsUpdateSchema,
+    GroupsMappingsListOutSchema,
+    GroupsMappingsOutSchema,
+    GroupsMappinsgSchema,
+    GroupsUpdateSchema,
 )
 
 tags_metadata = {
@@ -69,7 +73,7 @@ async def list_groups(controller: GroupsRepositoryDep) -> List[GroupsListOutSche
     },
 )
 async def update_groups(
-    controller: GroupsRepositoryDep, group_id: UUID, group: GrupsUpdateSchema
+    controller: GroupsRepositoryDep, group_id: UUID, group: GroupsUpdateSchema
 ) -> GroupOutSchema:
     return await controller.update_group(group_id, group)
 
@@ -81,3 +85,79 @@ async def update_groups(
 )
 async def delete_groups(controller: GroupsRepositoryDep, group_id: UUID) -> None:
     return await controller.delete_group(group_id)
+
+
+@router.post(
+    '/{group_id}/users',
+    description='Rota para adicionar um usuário ao grupo',
+    status_code=status.HTTP_201_CREATED,
+    response_model=GroupsMappingsOutSchema,
+    responses={
+        status.HTTP_201_CREATED: {
+            'description': 'Usuário adicionado ao grupo com sucesso',
+        },
+    },
+)
+async def add_user_to_group(
+    controller: GroupsRepositoryDep, group_id: UUID, mappings: GroupsMappinsgSchema
+) -> GroupsMappingsOutSchema:
+    return await controller.add_user_to_group(group_id, mappings)
+
+
+@router.get(
+    '/{group_id}/users',
+    description='Rota para listar os usuários do grupo',
+    status_code=status.HTTP_200_OK,
+    response_model=List[GroupsMappingsListOutSchema],
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Usuários listados com sucesso',
+        },
+        status.HTTP_404_NOT_FOUND: {
+            'description': 'Grupo nao encontrado',
+        },
+    },
+)
+async def list_users_to_grupo(
+    controller: GroupsRepositoryDep, pagination: PaginationParamsDep, group_id: UUID
+) -> List[GroupsMappingsListOutSchema]:
+    return await controller.list_users_to_grupo(pagination, group_id)
+
+
+@router.patch(
+    '/{group_id}/users',
+    description='Rota para atualizar o usuário do grupo',
+    status_code=status.HTTP_200_OK,
+    response_model=List[GroupsMappingsOutSchema],
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Tabela de mapeamento atualizada com sucesso',
+        },
+        status.HTTP_404_NOT_FOUND: {
+            'description': 'Grupo nao encontrado',
+        },
+    },
+)
+async def updated_user_to_group(
+    controller: GroupsRepositoryDep, group_id: UUID, mappings: GroupsMappinsgSchema
+) -> GroupsMappingsOutSchema:
+    return await controller.updated_user_to_group(group_id, mappings)
+
+
+@router.delete(
+    '/{group_id}/users/{user_id}',
+    description='Rota para deletar o usuário do grupo',
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Tabela de mapeamento atualizada com sucesso',
+        },
+        status.HTTP_404_NOT_FOUND: {
+            'description': 'Grupo nao encontrado',
+        },
+    },
+)
+async def delete_use_to_group(
+    controller: GroupsRepositoryDep, group_id: UUID, user_id: UUID
+) -> None:
+    return await controller.delete_user_to_group(group_id, user_id)

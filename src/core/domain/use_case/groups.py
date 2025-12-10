@@ -1,10 +1,15 @@
 from typing import List
 from uuid import UUID
 
+from src.application.api.v1.schemas.groups import (
+    GroupsMappingsOutSchema,
+    GroupsMappinsgSchema,
+)
 from src.core.domain.dtos.groups import (
     GroupBaseDto,
     GroupOutDto,
     GroupsListOutDto,
+    GroupsMappinsgListOutDto,
     GroupsUpdateDto,
 )
 from src.core.domain.exceptions.groups import GroupNotFoundException
@@ -32,3 +37,21 @@ class GroupsUseCase:
 
         if result is None:
             raise GroupNotFoundException(f'Esse {group_id} não foi encontrado.')
+
+    async def add_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappinsgSchema
+    ) -> GroupsMappingsOutSchema:
+        return await self.groups_service.add_user_to_group(group_id, mappings)
+
+    async def list_users_to_grupo(
+        self, pagination: dict, group_id: UUID
+    ) -> List[GroupsMappinsgListOutDto]:
+        return await self.groups_service.list_users_to_grupo(pagination, group_id)
+
+    async def updated_user_to_group(
+        self, group_id: UUID, mappings: GroupsMappinsgSchema
+    ) -> GroupsMappingsOutSchema:
+        return await self.groups_service.updated_user_to_group(group_id, mappings)
+
+    async def delete_user_to_group(self, group_id: UUID, user_id: UUID) -> None:
+        return await self.groups_service.delete_user_to_group(group_id, user_id)

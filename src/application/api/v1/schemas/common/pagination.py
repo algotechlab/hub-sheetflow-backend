@@ -9,7 +9,7 @@ class PaginationParamsBaseSchema(BaseModel):
     )
 
     filter_value: Optional[str] = Field(
-        default=None, description='O valor a ser buscado (ex: o número do protocolo)'
+        default=None, description='O valor a ser buscado'
     )
 
     @field_validator('filter_by')
@@ -17,9 +17,7 @@ class PaginationParamsBaseSchema(BaseModel):
     def validate_filter_fields(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
             return value
-        allowed_fields = [
-            'username',
-        ]
+        allowed_fields = ['username', 'name']
         if value not in allowed_fields:
             raise ValueError(
                 f'O campo filter_by deve ser um dos  '
