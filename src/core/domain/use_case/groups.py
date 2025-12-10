@@ -46,3 +46,6 @@ class GroupsUseCase:
         self, group_id: UUID, mappings: GroupsMappinsgSchema
     ) -> GroupsMappingsOutSchema:
         return await self.groups_service.updated_user_to_group(group_id, mappings)
+
+    async def delete_user_to_group(self, group_id: UUID, user_id: UUID) -> None:
+        return await self.groups_service.delete_user_to_group(group_id, user_id)

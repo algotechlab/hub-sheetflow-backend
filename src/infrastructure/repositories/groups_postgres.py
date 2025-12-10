@@ -151,3 +151,24 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))
+
+    async def delete_user_to_group(self, group_id: UUID, user_id: UUID):
+        try:
+            stmt = (
+                update(MappingsGroups)
+                .where(
+                    MappingsGroups.groups_id.__eq__(group_id),
+                    MappingsGroups.is_deleted.__eq__(False),
+                    MappingsGroups.id.__eq__(user_id),
+                )
+                .values(is_deleted=True)
+                .returning(MappingsGroups)
+            )
+            result = await self.session.execute(stmt)
+            await self.session.commit()
+            updated_group = result.scalar_one_or_none()
+
+            return updated_group is not None
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))

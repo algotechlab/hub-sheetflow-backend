@@ -36,3 +36,6 @@ class GroupsRepositoriesInterface(ABC):
     async def updated_user_to_group(
         self, group_id: UUID, mappings: GroupsMappingsDto
     ) -> GroupsMappingsOutDto: ...
+
+    @abstractmethod
+    async def delete_user_to_group(self, group_id: UUID, user_id: UUID) -> bool: ...

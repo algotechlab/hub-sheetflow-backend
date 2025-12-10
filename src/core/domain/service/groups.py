@@ -37,3 +37,6 @@ class GroupsService:
         self, group_id: UUID, mappings: GroupsMappingsDto
     ) -> GroupsMappingsOutDto:
         return await self.groups_repository.updated_user_to_group(group_id, mappings)
+
+    async def delete_user_to_group(self, group_id: UUID, user_id: UUID) -> bool:
+        return await self.groups_repository.delete_user_to_group(group_id, user_id)

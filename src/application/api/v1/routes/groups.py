@@ -120,3 +120,22 @@ async def updated_user_to_group(
     controller: GroupsRepositoryDep, group_id: UUID, mappings: GroupsMappinsgSchema
 ) -> GroupsMappingsOutSchema:
     return await controller.updated_user_to_group(group_id, mappings)
+
+
+@router.delete(
+    '/{group_id}/users/{user_id}',
+    description='Rota para deletar o usuário do grupo',
+    status_code=status.HTTP_204_NO_CONTENT,
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Tabela de mapeamento atualizada com sucesso',
+        },
+        status.HTTP_404_NOT_FOUND: {
+            'description': 'Grupo nao encontrado',
+        },
+    },
+)
+async def delete_use_to_group(
+    controller: GroupsRepositoryDep, group_id: UUID, user_id: UUID
+) -> None:
+    return await controller.delete_user_to_group(group_id, user_id)
