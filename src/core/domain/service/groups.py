@@ -33,6 +33,11 @@ class GroupsService:
     ) -> GroupsMappingsOutDto:
         return await self.groups_repository.add_user_to_group(group_id, mappings)
 
+    async def list_users_to_grupo(
+        self, pagination: dict, group_id: UUID
+    ) -> List[GroupsMappingsOutDto]:
+        return await self.groups_repository.list_users_to_grupo(pagination, group_id)
+
     async def updated_user_to_group(
         self, group_id: UUID, mappings: GroupsMappingsDto
     ) -> GroupsMappingsOutDto:

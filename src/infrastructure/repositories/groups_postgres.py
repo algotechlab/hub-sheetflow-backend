@@ -4,12 +4,14 @@ from uuid import UUID
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 from src.core.domain.dtos.groups import (
     GroupBaseDto,
     GroupOutDto,
     GroupsListOutDto,
     GroupsMappingsDto,
     GroupsMappingsOutDto,
+    GroupsMappinsgListOutDto,
     GroupsUpdateDto,
 )
 from src.core.domain.interface.groups import GroupsRepositoriesInterface
@@ -106,6 +108,58 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
             updated_group = result.scalar_one_or_none()
 
             return updated_group is not None
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def list_users_to_grupo(
+        self, pagination: PaginationParamsDTO, group_id: UUID
+    ):
+        try:
+            query = (
+                select(
+                    MappingsGroups.id,
+                    MappingsGroups.name,
+                    MappingsGroups.depedencias_pid,
+                    MappingsGroups.localidade,
+                    MappingsGroups.nome,
+                    MappingsGroups.contato,
+                    MappingsGroups.pasta_drive,
+                    MappingsGroups.cpf_cnpj,
+                    MappingsGroups.senha_portal,
+                    MappingsGroups.aba_plataforma,
+                    MappingsGroups.status,
+                    MappingsGroups.data_atual,
+                    MappingsGroups.data_intimacao,
+                    MappingsGroups.prazo,
+                    MappingsGroups.data_final,
+                    MappingsGroups.oficio,
+                    MappingsGroups.valor_indenizacao,
+                    MappingsGroups.valor_honorario,
+                    MappingsGroups.observacao,
+                    MappingsGroups.groups_id,
+                    MappingsGroups.created_at,
+                    MappingsGroups.updated_at,
+                )
+                .where(
+                    MappingsGroups.is_deleted.__eq__(False),
+                    MappingsGroups.groups_id.__eq__(group_id),
+                )
+                .order_by(MappingsGroups.created_at)
+            )
+
+            if pagination.filter_by and pagination.filter_value:
+                query = query.filter(
+                    getattr(MappingsGroups, pagination.filter_by).__eq__(
+                        pagination.filter_value
+                    )
+                )
+
+            result = await self.session.execute(query)
+            return [
+                GroupsMappinsgListOutDto.model_validate(row._mapping)
+                for row in result.all()
+            ]
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

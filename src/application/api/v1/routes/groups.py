@@ -2,11 +2,13 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, status
+from src.application.api.v1.dependencies.common.pagination import PaginationParamsDep
 from src.application.api.v1.dependencies.groups import GroupsRepositoryDep
 from src.application.api.v1.schemas.groups import (
     GroupBaseSchema,
     GroupOutSchema,
     GroupsListOutSchema,
+    GroupsMappingsListOutSchema,
     GroupsMappingsOutSchema,
     GroupsMappinsgSchema,
     GroupsUpdateSchema,
@@ -100,6 +102,26 @@ async def add_user_to_group(
     controller: GroupsRepositoryDep, group_id: UUID, mappings: GroupsMappinsgSchema
 ) -> GroupsMappingsOutSchema:
     return await controller.add_user_to_group(group_id, mappings)
+
+
+@router.get(
+    '/{group_id}/users',
+    description='Rota para listar os usuários do grupo',
+    status_code=status.HTTP_200_OK,
+    response_model=List[GroupsMappingsListOutSchema],
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Usuários listados com sucesso',
+        },
+        status.HTTP_404_NOT_FOUND: {
+            'description': 'Grupo nao encontrado',
+        },
+    },
+)
+async def list_users_to_grupo(
+    controller: GroupsRepositoryDep, pagination: PaginationParamsDep, group_id: UUID
+) -> List[GroupsMappingsListOutSchema]:
+    return await controller.list_users_to_grupo(pagination, group_id)
 
 
 @router.patch(

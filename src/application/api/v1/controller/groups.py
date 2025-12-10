@@ -1,13 +1,17 @@
+from typing import List
 from uuid import UUID
 
+from src.application.api.v1.schemas.common.pagination import PaginationParamsBaseSchema
 from src.application.api.v1.schemas.groups import (
     GroupBaseSchema,
     GroupOutSchema,
     GroupsListOutSchema,
+    GroupsMappingsListOutSchema,
     GroupsMappingsOutSchema,
     GroupsMappinsgSchema,
     GroupsUpdateSchema,
 )
+from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 from src.core.domain.dtos.groups import GroupBaseDto, GroupsMappingsDto, GroupsUpdateDto
 from src.core.domain.use_case.groups import GroupsUseCase
 
@@ -41,6 +45,13 @@ class GroupsController:
         mappings_dto = GroupsMappingsDto(**mappings.model_dump())
         mappings_case = await self.use_case.add_user_to_group(group_id, mappings_dto)
         return GroupsMappingsOutSchema.model_validate(mappings_case)
+
+    async def list_users_to_grupo(
+        self, pagination: PaginationParamsBaseSchema, group_id: UUID
+    ) -> List[GroupsMappingsListOutSchema]:
+        pagination_dto = PaginationParamsDTO(**pagination.model_dump())
+        groups = await self.use_case.list_users_to_grupo(pagination_dto, group_id)
+        return [GroupsMappingsListOutSchema.model_validate(group) for group in groups]
 
     async def updated_user_to_group(
         self, group_id: UUID, mappings: GroupsMappinsgSchema

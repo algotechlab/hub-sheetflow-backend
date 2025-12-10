@@ -9,6 +9,7 @@ from src.core.domain.dtos.groups import (
     GroupBaseDto,
     GroupOutDto,
     GroupsListOutDto,
+    GroupsMappinsgListOutDto,
     GroupsUpdateDto,
 )
 from src.core.domain.exceptions.groups import GroupNotFoundException
@@ -41,6 +42,11 @@ class GroupsUseCase:
         self, group_id: UUID, mappings: GroupsMappinsgSchema
     ) -> GroupsMappingsOutSchema:
         return await self.groups_service.add_user_to_group(group_id, mappings)
+
+    async def list_users_to_grupo(
+        self, pagination: dict, group_id: UUID
+    ) -> List[GroupsMappinsgListOutDto]:
+        return await self.groups_service.list_users_to_grupo(pagination, group_id)
 
     async def updated_user_to_group(
         self, group_id: UUID, mappings: GroupsMappinsgSchema
