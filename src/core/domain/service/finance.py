@@ -5,6 +5,7 @@ from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 from src.core.domain.dtos.finance import (
     FinanceBaseDto,
     FinanceListOutDto,
+    FinanceOutByIdDto,
     FinanceOutDto,
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
@@ -28,6 +29,9 @@ class FinanceService:
         self, finance_outflow: FinanceOutFlowBaseDto
     ) -> FinanceOutFlowOutDto:
         return await self.finance_repository.add_finance_outflow(finance_outflow)
+
+    async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto:
+        return await self.finance_repository.get_finance(finance_id)
 
     async def delete_finance(self, finance_id: UUID) -> bool:
         return await self.finance_repository.delete_finance(finance_id)

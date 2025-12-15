@@ -7,6 +7,7 @@ from src.application.api.v1.dependencies.finance import FinanceRepositoryDep
 from src.application.api.v1.schemas.finance import (
     FinanceBaseSchema,
     FinanceListInSchema,
+    FinanceOutByIdSchema,
     FinanceOutFlowBaseSchema,
     FinanceOutFlowOutSchema,
     FinanceOutSchema,
@@ -39,6 +40,18 @@ async def add_finance(
     controller: FinanceRepositoryDep, finance: FinanceBaseSchema
 ) -> FinanceOutSchema:
     return await controller.add_finance(finance)
+
+
+@router.get(
+    '/{finance_id}',
+    description='Rota para buscar o pagamento',
+    status_code=status.HTTP_201_CREATED,
+    response_model=FinanceOutByIdSchema,
+)
+async def get_finance(
+    controller: FinanceRepositoryDep, finance_id: UUID
+) -> FinanceOutByIdSchema:
+    return await controller.get_finance(finance_id)
 
 
 @router.get(

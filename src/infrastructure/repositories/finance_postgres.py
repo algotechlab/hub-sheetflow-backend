@@ -8,6 +8,7 @@ from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 from src.core.domain.dtos.finance import (
     FinanceBaseDto,
     FinanceListOutDto,
+    FinanceOutByIdDto,
     FinanceOutDto,
     FinanceOutFlowOutDto,
 )
@@ -74,6 +75,33 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             return [
                 FinanceListOutDto.model_validate(row._mapping) for row in result.all()
             ]
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto:
+        try:
+            query = select(
+                Finance.id,
+                Finance.name,
+                Finance.date_contract,
+                Finance.document,
+                Finance.installment_numbers,
+                Finance.total,
+                Finance.created_at,
+                Finance.updated_at,
+            ).where(
+                Finance.id.__eq__(finance_id),
+                Finance.is_deleted.__eq__(False),
+            )
+
+            result = await self.session.execute(query)
+            row = result.one_or_none()
+
+            if not row:
+                return None
+
+            return FinanceOutByIdDto.model_validate(row._mapping)
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

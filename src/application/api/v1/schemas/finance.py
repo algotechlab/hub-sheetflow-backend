@@ -37,3 +37,15 @@ class FinanceOutFlowOutSchema(FinanceOutFlowBaseSchema):
     created_at: datetime
     updated_at: datetime
     model_config = {'from_attributes': True}
+
+
+class FinanceOutByIdSchema(BaseModel):
+    id: UUID
+    name: str
+    date_contract: date
+    document: str
+    installment_numbers: int
+    total: Decimal
+    created_at: datetime
+    updated_at: datetime
+    model_config = {'from_attributes': True}
