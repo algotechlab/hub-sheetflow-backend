@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 from src.core.domain.dtos.finance import (
@@ -8,6 +9,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
 )
+from src.core.domain.exceptions.finance import FinanceNotFoundException
 from src.core.domain.service.finance import FinanceService
 
 
@@ -27,3 +29,9 @@ class FinanceUseCase:
         self, finance_outflow: FinanceOutFlowBaseDto
     ) -> FinanceOutFlowOutDto:
         return await self.finance_service.add_finance_outflow(finance_outflow)
+
+    async def delete_finance(self, finance_id: UUID) -> None:
+        result = await self.finance_service.delete_finance(finance_id)
+
+        if result is None:
+            raise FinanceNotFoundException(f'Esse {finance_id} não foi encontrado.')

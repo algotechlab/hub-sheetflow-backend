@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List
+from uuid import UUID
 
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
 from src.core.domain.dtos.finance import (
@@ -23,3 +24,6 @@ class FinanceRepositoriesInterface(ABC):
     async def add_finance_outflow(
         self, finance_outflow: FinanceOutFlowBaseDto
     ) -> FinanceOutFlowOutDto: ...
+
+    @abstractmethod
+    async def delete_finance(self, finance_id: UUID) -> bool: ...

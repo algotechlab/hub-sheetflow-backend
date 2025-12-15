@@ -1,6 +1,7 @@
 from typing import List
+from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
@@ -73,6 +74,24 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             return [
                 FinanceListOutDto.model_validate(row._mapping) for row in result.all()
             ]
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def delete_finance(self, finance_id: UUID) -> bool:
+        try:
+            stmt = (
+                update(Finance)
+                .where(Finance.id.__eq__(finance_id), Finance.is_deleted.__eq__(False))
+                .values(is_deleted=True)
+                .returning(Finance)
+            )
+            result = await self.session.execute(stmt)
+            await self.session.commit()
+
+            updated_finance = result.scalar_one_or_none()
+
+            return updated_finance is not None
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

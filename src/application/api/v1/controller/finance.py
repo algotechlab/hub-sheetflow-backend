@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from src.application.api.v1.schemas.common.pagination import PaginationParamsBaseSchema
 from src.application.api.v1.schemas.finance import (
@@ -35,3 +36,6 @@ class FinanceController:
         finance_dto = FinanceOutFlowBaseDto(**outflow.model_dump())
         finance_case = await self.use_case.add_finance_outflow(finance_dto)
         return FinanceOutFlowOutSchema.model_validate(finance_case)
+
+    async def delete_finance(self, finance_id: UUID) -> None:
+        await self.use_case.delete_finance(finance_id)

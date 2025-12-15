@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 
 from fastapi import APIRouter, status
 from src.application.api.v1.dependencies.common.pagination import PaginationParamsDep
@@ -72,3 +73,12 @@ async def add_finance_out_flow(
     controller: FinanceRepositoryDep, outflow: FinanceOutFlowBaseSchema
 ) -> FinanceOutFlowOutSchema:
     return await controller.add_finance_outflow(outflow)
+
+
+@router.delete(
+    '/{finance_id}',
+    description='Rota para deletar um pagamento',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_finance(controller: FinanceRepositoryDep, finance_id: UUID):
+    return await controller.delete_finance(finance_id)
