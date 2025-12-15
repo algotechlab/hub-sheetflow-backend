@@ -6,6 +6,8 @@ from src.application.api.v1.dependencies.finance import FinanceRepositoryDep
 from src.application.api.v1.schemas.finance import (
     FinanceBaseSchema,
     FinanceListInSchema,
+    FinanceOutFlowBaseSchema,
+    FinanceOutFlowOutSchema,
     FinanceOutSchema,
 )
 
@@ -53,3 +55,20 @@ async def list_finance(
     controller: FinanceRepositoryDep, pagination: PaginationParamsDep
 ) -> List[FinanceListInSchema]:
     return await controller.list_finance(pagination)
+
+
+@router.post(
+    '/outflow',
+    description='Rota para adicionar a saída de pagamento',
+    status_code=status.HTTP_201_CREATED,
+    response_model=FinanceOutFlowOutSchema,
+    responses={
+        status.HTTP_201_CREATED: {
+            'description': 'Desconto criado com sucesso',
+        }
+    },
+)
+async def add_finance_out_flow(
+    controller: FinanceRepositoryDep, outflow: FinanceOutFlowBaseSchema
+) -> FinanceOutFlowOutSchema:
+    return await controller.add_finance_outflow(outflow)

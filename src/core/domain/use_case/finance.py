@@ -5,6 +5,8 @@ from src.core.domain.dtos.finance import (
     FinanceBaseDto,
     FinanceListOutDto,
     FinanceOutDto,
+    FinanceOutFlowBaseDto,
+    FinanceOutFlowOutDto,
 )
 from src.core.domain.service.finance import FinanceService
 
@@ -20,3 +22,8 @@ class FinanceUseCase:
         self, pagination: PaginationParamsDTO
     ) -> List[FinanceListOutDto]:
         return await self.finance_service.list_finance(pagination)
+
+    async def add_finance_outflow(
+        self, finance_outflow: FinanceOutFlowBaseDto
+    ) -> FinanceOutFlowOutDto:
+        return await self.finance_service.add_finance_outflow(finance_outflow)

@@ -8,9 +8,11 @@ from src.core.domain.dtos.finance import (
     FinanceBaseDto,
     FinanceListOutDto,
     FinanceOutDto,
+    FinanceOutFlowOutDto,
 )
 from src.core.domain.interface.finance import FinanceRepositoriesInterface
 from src.core.domain.models.finance import Finance
+from src.core.domain.models.financial_outflow_box import FinanceOutFlowBox
 from src.core.exceptions.custom import DatabaseException
 
 
@@ -25,6 +27,19 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             await self.session.commit()
             await self.session.refresh(db_finance)
             return FinanceOutDto.model_validate(db_finance)
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def add_finance_outflow(
+        self, finance_outflow: FinanceOutFlowBox
+    ) -> FinanceOutFlowOutDto:
+        try:
+            db_finance = FinanceOutFlowBox(**finance_outflow.model_dump())
+            self.session.add(db_finance)
+            await self.session.commit()
+            await self.session.refresh(db_finance)
+            return FinanceOutFlowOutDto.model_validate(db_finance)
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

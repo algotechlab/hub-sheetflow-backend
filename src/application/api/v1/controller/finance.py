@@ -4,10 +4,12 @@ from src.application.api.v1.schemas.common.pagination import PaginationParamsBas
 from src.application.api.v1.schemas.finance import (
     FinanceBaseSchema,
     FinanceListInSchema,
+    FinanceOutFlowBaseSchema,
+    FinanceOutFlowOutSchema,
     FinanceOutSchema,
 )
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.finance import FinanceBaseDto
+from src.core.domain.dtos.finance import FinanceBaseDto, FinanceOutFlowBaseDto
 from src.core.domain.use_case.finance import FinanceUseCase
 
 
@@ -26,3 +28,10 @@ class FinanceController:
         pagination_dto = PaginationParamsDTO(**pagination.model_dump())
         finance = await self.use_case.list_finance(pagination_dto)
         return [FinanceListInSchema.model_validate(user) for user in finance]
+
+    async def add_finance_outflow(
+        self, outflow: FinanceOutFlowBaseSchema
+    ) -> FinanceOutFlowOutSchema:
+        finance_dto = FinanceOutFlowBaseDto(**outflow.model_dump())
+        finance_case = await self.use_case.add_finance_outflow(finance_dto)
+        return FinanceOutFlowOutSchema.model_validate(finance_case)

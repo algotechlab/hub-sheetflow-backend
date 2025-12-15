@@ -25,3 +25,15 @@ class FinanceListInSchema(FinanceBaseSchema):
     created_at: datetime
     updated_at: datetime
     model_config = {'from_attributes': True}
+
+
+class FinanceOutFlowBaseSchema(BaseModel):
+    description: str
+    value: Decimal
+
+
+class FinanceOutFlowOutSchema(FinanceOutFlowBaseSchema):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    model_config = {'from_attributes': True}
