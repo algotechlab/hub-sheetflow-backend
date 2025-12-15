@@ -20,4 +20,8 @@ class FinanceOutSchema(FinanceBaseSchema):
     model_config = {'from_attributes': True}
 
 
-class FinanceListInSchema(FinanceOutSchema): ...
+class FinanceListInSchema(FinanceBaseSchema):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    model_config = {'from_attributes': True}

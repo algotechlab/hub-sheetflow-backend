@@ -1,6 +1,14 @@
+from typing import List
+
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.domain.dtos.finance import FinanceBaseDto, FinanceOutDto
+from src.core.domain.dtos.common.pagination import PaginationParamsDTO
+from src.core.domain.dtos.finance import (
+    FinanceBaseDto,
+    FinanceListOutDto,
+    FinanceOutDto,
+)
 from src.core.domain.interface.finance import FinanceRepositoriesInterface
 from src.core.domain.models.finance import Finance
 from src.core.exceptions.custom import DatabaseException
@@ -17,6 +25,39 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             await self.session.commit()
             await self.session.refresh(db_finance)
             return FinanceOutDto.model_validate(db_finance)
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def list_finance(
+        self, pagination: PaginationParamsDTO
+    ) -> List[FinanceListOutDto]:
+        try:
+            query = (
+                select(
+                    Finance.id,
+                    Finance.name,
+                    Finance.date_contract,
+                    Finance.document,
+                    Finance.installment_numbers,
+                    Finance.total,
+                    Finance.created_at,
+                    Finance.updated_at,
+                )
+                .where(Finance.is_deleted.__eq__(False))
+                .order_by(Finance.created_at)
+            )
+
+            if pagination.filter_by and pagination.filter_value:
+                query = query.filter(
+                    getattr(Finance, pagination.filter_by).__eq__(
+                        pagination.filter_value
+                    )
+                )
+            result = await self.session.execute(query)
+            return [
+                FinanceListOutDto.model_validate(row._mapping) for row in result.all()
+            ]
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

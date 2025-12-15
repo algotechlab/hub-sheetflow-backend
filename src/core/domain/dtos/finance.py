@@ -18,3 +18,10 @@ class FinanceOutDto(FinanceBaseDto):
     created_at: datetime
     updated_at: datetime
     model_config = {'from_attributes': True}
+
+
+class FinanceListOutDto(FinanceBaseDto):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    model_config = {'from_attributes': True}
