@@ -161,3 +161,16 @@ async def delete_use_to_group(
     controller: GroupsRepositoryDep, group_id: UUID, user_id: UUID
 ) -> None:
     return await controller.delete_user_to_group(group_id, user_id)
+
+
+@router.patch(
+    '/transfer/{group_id}/users/{user_id}',
+    description='Rota para transferir um usuário para outro grupo',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def transfer_user_to_group(
+    controller: GroupsRepositoryDep,
+    group_id: UUID,
+    user_id: UUID,
+):
+    return await controller.transfer_user_to_group(group_id, user_id)

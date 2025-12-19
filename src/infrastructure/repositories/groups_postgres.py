@@ -226,3 +226,19 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))
+
+    async def transfer_user_to_group(self, group_id: UUID, user_id: UUID) -> None:
+        try:
+            stmt = (
+                update(MappingsGroups)
+                .where(
+                    MappingsGroups.id.__eq__(user_id),
+                    MappingsGroups.is_deleted.is_(False),
+                )
+                .values(groups_id=group_id)
+            )
+            await self.session.execute(stmt)
+            await self.session.commit()
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))

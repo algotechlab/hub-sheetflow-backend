@@ -46,3 +46,6 @@ class GroupsRepositoriesInterface(ABC):
 
     @abstractmethod
     async def delete_user_to_group(self, group_id: UUID, user_id: UUID) -> bool: ...
+
+    @abstractmethod
+    async def transfer_user_to_group(self, group_id: UUID, user_id: UUID) -> None: ...

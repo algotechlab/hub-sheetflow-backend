@@ -55,3 +55,6 @@ class GroupsUseCase:
 
     async def delete_user_to_group(self, group_id: UUID, user_id: UUID) -> None:
         return await self.groups_service.delete_user_to_group(group_id, user_id)
+
+    async def transfer_user_to_group(self, group_id: UUID, user_id: UUID) -> None:
+        return await self.groups_service.transfer_user_to_group(group_id, user_id)
