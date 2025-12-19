@@ -40,7 +40,6 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
             self.session.add(db_groups)
             await self.session.commit()
             await self.session.refresh(db_groups)
-            await self.__add_mappings_groups(db_groups.id)
             return GroupOutDto.model_validate(db_groups)
         except Exception as error:
             await self.session.rollback()
