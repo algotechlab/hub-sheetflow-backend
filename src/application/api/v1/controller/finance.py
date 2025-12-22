@@ -11,7 +11,11 @@ from src.application.api.v1.schemas.finance import (
     FinanceOutSchema,
 )
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.finance import FinanceBaseDto, FinanceOutFlowBaseDto
+from src.core.domain.dtos.finance import (
+    FinanceBaseDto,
+    FinanceOutFlowBaseDto,
+    UpdateFinanceBaseDto,
+)
 from src.core.domain.use_case.finance import FinanceUseCase
 
 
@@ -31,9 +35,23 @@ class FinanceController:
         finance = await self.use_case.list_finance(pagination_dto)
         return [FinanceListInSchema.model_validate(user) for user in finance]
 
+    async def list_finance_out_flow(
+        self, pagination: PaginationParamsBaseSchema
+    ) -> List[FinanceOutFlowOutSchema]:
+        pagination_dto = PaginationParamsDTO(**pagination.model_dump())
+        finance = await self.use_case.list_finance_out_flow(pagination_dto)
+        return [FinanceOutFlowOutSchema.model_validate(user) for user in finance]
+
     async def get_finance(self, finance_id: UUID) -> FinanceOutByIdSchema:
         finance_case = await self.use_case.get_finance(finance_id)
         return FinanceOutByIdSchema.model_validate(finance_case)
+
+    async def update_finance(
+        self, finance_id: UUID, finance: FinanceBaseSchema
+    ) -> FinanceOutSchema:
+        finance_dto = UpdateFinanceBaseDto(**finance.model_dump())
+        finance_case = await self.use_case.update_finance(finance_id, finance_dto)
+        return FinanceOutSchema.model_validate(finance_case)
 
     async def add_finance_outflow(
         self, outflow: FinanceOutFlowBaseSchema

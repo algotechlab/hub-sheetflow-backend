@@ -9,6 +9,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutDto,
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
+    UpdateFinanceBaseDto,
 )
 from src.core.domain.exceptions.finance import FinanceNotFoundException
 from src.core.domain.service.finance import FinanceService
@@ -26,6 +27,11 @@ class FinanceUseCase:
     ) -> List[FinanceListOutDto]:
         return await self.finance_service.list_finance(pagination)
 
+    async def list_finance_out_flow(
+        self, pagination: PaginationParamsDTO
+    ) -> List[FinanceOutFlowOutDto]:
+        return await self.finance_service.list_finance_out_flow(pagination)
+
     async def add_finance_outflow(
         self, finance_outflow: FinanceOutFlowBaseDto
     ) -> FinanceOutFlowOutDto:
@@ -33,6 +39,14 @@ class FinanceUseCase:
 
     async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto:
         return await self.finance_service.get_finance(finance_id)
+
+    async def update_finance(
+        self, finance_id: UUID, finance: UpdateFinanceBaseDto
+    ) -> FinanceOutDto:
+        result = await self.finance_service.update_finance(finance_id, finance)
+        if result is None:
+            raise FinanceNotFoundException(f'Esse {finance_id} não foi encontrado.')
+        return result
 
     async def delete_finance(self, finance_id: UUID) -> None:
         result = await self.finance_service.delete_finance(finance_id)

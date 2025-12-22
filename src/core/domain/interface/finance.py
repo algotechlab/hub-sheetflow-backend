@@ -9,6 +9,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutDto,
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
+    UpdateFinanceBaseDto,
 )
 
 
@@ -27,7 +28,17 @@ class FinanceRepositoriesInterface(ABC):
     ) -> FinanceOutFlowOutDto: ...
 
     @abstractmethod
+    async def list_finance_out_flow(
+        self, pagination: PaginationParamsDTO
+    ) -> List[FinanceOutFlowOutDto]: ...
+
+    @abstractmethod
     async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto | None: ...
+
+    @abstractmethod
+    async def update_finance(
+        self, finance_id: UUID, finance: UpdateFinanceBaseDto
+    ) -> FinanceOutDto | None: ...
 
     @abstractmethod
     async def delete_finance(self, finance_id: UUID) -> bool: ...

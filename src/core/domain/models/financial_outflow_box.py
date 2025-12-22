@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 from sqlalchemy import String
@@ -12,4 +13,10 @@ class FinanceOutFlowBox(BaseModel):
     description: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
+    )
+    installment_numbers: Mapped[int] = mapped_column(
+        nullable=True,
+    )
+    date_flow: Mapped[date] = mapped_column(
+        nullable=True,
     )

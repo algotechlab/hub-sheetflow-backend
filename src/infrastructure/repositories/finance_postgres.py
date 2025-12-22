@@ -11,6 +11,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutByIdDto,
     FinanceOutDto,
     FinanceOutFlowOutDto,
+    UpdateFinanceBaseDto,
 )
 from src.core.domain.interface.finance import FinanceRepositoriesInterface
 from src.core.domain.models.finance import Finance
@@ -79,6 +80,39 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             await self.session.rollback()
             raise DatabaseException(str(error))
 
+    async def list_finance_out_flow(
+        self, pagination: PaginationParamsDTO
+    ) -> List[FinanceOutFlowOutDto]:
+        try:
+            query = (
+                select(
+                    FinanceOutFlowBox.id,
+                    FinanceOutFlowBox.description,
+                    FinanceOutFlowBox.value,
+                    FinanceOutFlowBox.date_flow,
+                    FinanceOutFlowBox.installment_numbers,
+                    FinanceOutFlowBox.created_at,
+                    FinanceOutFlowBox.updated_at,
+                )
+                .where(FinanceOutFlowBox.is_deleted.__eq__(False))
+                .order_by(FinanceOutFlowBox.created_at)
+            )
+
+            if pagination.filter_by and pagination.filter_value:
+                query = query.filter(
+                    getattr(FinanceOutFlowBox, pagination.filter_by).__eq__(
+                        pagination.filter_value
+                    )
+                )
+            result = await self.session.execute(query)
+            return [
+                FinanceOutFlowOutDto.model_validate(row._mapping)
+                for row in result.all()
+            ]
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
     async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto:
         try:
             query = select(
@@ -102,6 +136,42 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
                 return None
 
             return FinanceOutByIdDto.model_validate(row._mapping)
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def update_finance(
+        self, finance_id: UUID, finance: UpdateFinanceBaseDto
+    ) -> FinanceOutDto | None:
+        try:
+            values = finance.model_dump(
+                exclude_unset=True,
+                exclude_none=True,
+            )
+
+            if not values:
+                return None
+
+            stmt = (
+                update(Finance)
+                .where(
+                    Finance.id == finance_id,
+                    Finance.is_deleted.is_(False),
+                )
+                .values(**values)
+                .returning(Finance)
+            )
+
+            result = await self.session.execute(stmt)
+            await self.session.commit()
+
+            updated_finance = result.scalar_one_or_none()
+
+            if not updated_finance:
+                return None
+
+            return FinanceOutDto.model_validate(updated_finance)
+
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

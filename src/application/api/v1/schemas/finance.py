@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -11,6 +12,14 @@ class FinanceBaseSchema(BaseModel):
     document: str
     installment_numbers: int
     total: Decimal
+
+
+class UpdateFinanceBaseSchema(BaseModel):
+    name: Optional[str] = None
+    date_contract: Optional[date] = None
+    document: Optional[str] = None
+    installment_numbers: Optional[int] = None
+    total: Optional[Decimal] = None
 
 
 class FinanceOutSchema(FinanceBaseSchema):
@@ -30,6 +39,8 @@ class FinanceListInSchema(FinanceBaseSchema):
 class FinanceOutFlowBaseSchema(BaseModel):
     description: str
     value: Decimal
+    date_flow: date
+    installment_numbers: Optional[int] = None
 
 
 class FinanceOutFlowOutSchema(FinanceOutFlowBaseSchema):

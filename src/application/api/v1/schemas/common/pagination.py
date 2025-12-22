@@ -17,7 +17,7 @@ class PaginationParamsBaseSchema(BaseModel):
     def validate_filter_fields(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
             return value
-        allowed_fields = ['username', 'name', 'document']
+        allowed_fields = ['username', 'name', 'document', 'description']
         if value not in allowed_fields:
             raise ValueError(
                 f'O campo filter_by deve ser um dos  '

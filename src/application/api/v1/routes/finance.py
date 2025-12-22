@@ -11,6 +11,7 @@ from src.application.api.v1.schemas.finance import (
     FinanceOutFlowBaseSchema,
     FinanceOutFlowOutSchema,
     FinanceOutSchema,
+    UpdateFinanceBaseSchema,
 )
 
 tags_metadata = {
@@ -23,6 +24,23 @@ router = APIRouter(
     prefix='/finance',
     tags=[tags_metadata['name']],
 )
+
+
+@router.get(
+    '/outflow',
+    description='Rota para adicionar a saída de pagamento',
+    status_code=status.HTTP_200_OK,
+    response_model=List[FinanceOutFlowOutSchema],
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Desconto listado com sucesso',
+        }
+    },
+)
+async def list_finance_out_flow(
+    controller: FinanceRepositoryDep, pagination: PaginationParamsDep
+) -> List[FinanceOutFlowOutSchema]:
+    return await controller.list_finance_out_flow(pagination)
 
 
 @router.post(
@@ -86,6 +104,20 @@ async def add_finance_out_flow(
     controller: FinanceRepositoryDep, outflow: FinanceOutFlowBaseSchema
 ) -> FinanceOutFlowOutSchema:
     return await controller.add_finance_outflow(outflow)
+
+
+@router.patch(
+    '/{finance_id}',
+    description='Rota para atualizar o pagamento',
+    status_code=status.HTTP_200_OK,
+    response_model=FinanceOutSchema,
+)
+async def updated_finance(
+    controller: FinanceRepositoryDep,
+    finance_id: UUID,
+    finance: UpdateFinanceBaseSchema,
+) -> FinanceOutSchema:
+    return await controller.update_finance(finance_id, finance)
 
 
 @router.delete(
