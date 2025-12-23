@@ -50,6 +50,7 @@ class LoginRepositoryPostgres(LoginRepositoriesInterface):
 
             payload = {
                 'sub': str(user.id),
+                'username': user.username,
                 'email': user.email,
                 'role': user.role,
                 'exp': datetime.now() + timedelta(hours=1),
@@ -58,6 +59,7 @@ class LoginRepositoryPostgres(LoginRepositoriesInterface):
 
             return LoginResponseDTO(
                 email=user.email,
+                username=user.username,
                 password=login_dto.password,
                 user_id=user.id,
                 token=token,

@@ -9,6 +9,7 @@ class LoginInSchema(BaseModel):
 
 
 class LoginOutSchema(LoginInSchema):
+    username: str
     user_id: UUID
     token: str
     role: str

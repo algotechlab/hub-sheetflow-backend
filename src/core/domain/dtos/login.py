@@ -9,6 +9,7 @@ class LoginDTO(BaseModel):
 
 
 class LoginResponseDTO(LoginDTO):
+    username: str
     user_id: UUID
     token: str
     role: str
