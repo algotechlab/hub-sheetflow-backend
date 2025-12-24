@@ -49,6 +49,7 @@ class GroupsMappinsgSchema(BaseModel):
     valor_indenizacao: Optional[Decimal] = None
     valor_honorario: Optional[Decimal] = None
     observacao: Optional[str] = None
+    user_id: Optional[UUID] = None
 
 
 class GroupsMappingsOutSchema(GroupsMappinsgSchema):

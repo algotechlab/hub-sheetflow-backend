@@ -60,7 +60,9 @@ class GroupsController:
         mappings_case = await self.use_case.updated_user_to_group(
             group_id, mappings_dto
         )
-        return GroupsMappingsOutSchema.model_validate(mappings_case)
+        return [
+            GroupsMappingsOutSchema.model_validate(mapping) for mapping in mappings_case
+        ]
 
     async def delete_user_to_group(self, group_id: UUID, user_id: UUID) -> None:
         return await self.use_case.delete_user_to_group(group_id, user_id)

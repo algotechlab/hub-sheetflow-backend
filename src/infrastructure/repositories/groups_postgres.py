@@ -17,7 +17,7 @@ from src.core.domain.dtos.groups import (
 from src.core.domain.interface.groups import GroupsRepositoriesInterface
 from src.core.domain.models.groups import Groups
 from src.core.domain.models.mappings_groups import MappingsGroups
-from src.core.exceptions.custom import DatabaseException
+from src.core.exceptions.custom import DatabaseException, NotFoundException
 
 
 class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
@@ -177,15 +177,22 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
 
     async def updated_user_to_group(
         self, group_id: UUID, mappings: GroupsMappingsDto
-    ) -> GroupsMappingsOutDto:
+    ) -> list[GroupsMappingsOutDto]:
         try:
-            update_data = mappings.model_dump(exclude_unset=True)
+            update_data = mappings.model_dump(
+                exclude_unset=True,
+                exclude={'user_id'},
+            )
+
+            if not update_data:
+                raise ValueError('No fields provided for update')
 
             stmt = (
                 update(MappingsGroups)
                 .where(
-                    MappingsGroups.id.__eq__(group_id),
-                    MappingsGroups.is_deleted.__eq__(False),
+                    MappingsGroups.groups_id.__eq__(group_id),
+                    MappingsGroups.id.__eq__(mappings.user_id),
+                    MappingsGroups.is_deleted.is_(False),
                 )
                 .values(**update_data)
                 .returning(MappingsGroups)
@@ -194,12 +201,17 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
             result = await self.session.execute(stmt)
             await self.session.commit()
 
-            updated_group = result.scalar_one_or_none()
+            updated_groups = result.scalars().all()
 
-            if updated_group is None:
-                return None
+            if not updated_groups:
+                raise NotFoundException(
+                    'No group mappings found for this user and group'
+                )
 
-            return GroupsMappingsOutDto.model_validate(updated_group)
+            return [
+                GroupsMappingsOutDto.model_validate(group) for group in updated_groups
+            ]
+
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))
