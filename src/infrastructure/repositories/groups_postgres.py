@@ -121,7 +121,6 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
                     MappingsGroups.name,
                     MappingsGroups.depedencias_pid,
                     MappingsGroups.localidade,
-                    MappingsGroups.nome,
                     MappingsGroups.contato,
                     MappingsGroups.pasta_drive,
                     MappingsGroups.cpf_cnpj,
