@@ -8,11 +8,16 @@ from src.application.api.v1.schemas.groups import (
     GroupsListOutSchema,
     GroupsMappingsListOutSchema,
     GroupsMappingsOutSchema,
-    GroupsMappinsgSchema,
+    GroupsMappingsUpdateSchema,
     GroupsUpdateSchema,
 )
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
-from src.core.domain.dtos.groups import GroupBaseDto, GroupsMappingsDto, GroupsUpdateDto
+from src.core.domain.dtos.groups import (
+    GroupBaseDto,
+    GroupsMappingsDto,
+    GroupsMappingsUpdateDto,
+    GroupsUpdateDto,
+)
 from src.core.domain.use_case.groups import GroupsUseCase
 
 
@@ -40,7 +45,7 @@ class GroupsController:
         return await self.use_case.delete_group(group_id)
 
     async def add_user_to_group(
-        self, group_id: UUID, mappings: GroupsMappinsgSchema
+        self, group_id: UUID, mappings: GroupsMappingsUpdateSchema
     ) -> GroupsMappingsOutSchema:
         mappings_dto = GroupsMappingsDto(**mappings.model_dump())
         mappings_case = await self.use_case.add_user_to_group(group_id, mappings_dto)
@@ -54,9 +59,9 @@ class GroupsController:
         return [GroupsMappingsListOutSchema.model_validate(group) for group in groups]
 
     async def updated_user_to_group(
-        self, group_id: UUID, mappings: GroupsMappinsgSchema
+        self, group_id: UUID, mappings: GroupsMappingsUpdateSchema
     ) -> GroupsMappingsOutSchema:
-        mappings_dto = GroupsMappingsDto(**mappings.model_dump())
+        mappings_dto = GroupsMappingsUpdateDto(**mappings.model_dump())
         mappings_case = await self.use_case.updated_user_to_group(
             group_id, mappings_dto
         )

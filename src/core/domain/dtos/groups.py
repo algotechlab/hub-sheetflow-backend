@@ -1,5 +1,4 @@
-from datetime import date, datetime
-from decimal import Decimal
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
@@ -35,23 +34,23 @@ class GroupsUpdateDto(GroupBaseDto):
 
 class GroupsMappingsDto(BaseModel):
     name: Optional[str] = None
-    depedencias_pid: Optional[str] = None
-    localidade: Optional[str] = None
     contato: Optional[str] = None
-    pasta_drive: Optional[str] = None
-    cpf_cnpj: Optional[str] = None
-    senha_portal: Optional[str] = None
-    aba_plataforma: Optional[str] = None
-    status: Optional[str] = None
-    data_atual: Optional[date] = None
-    data_intimacao: Optional[date] = None
-    prazo: Optional[str] = None
-    data_final: Optional[date] = None
-    oficio: Optional[str] = None
-    valor_indenizacao: Optional[Decimal] = None
-    valor_honorario: Optional[Decimal] = None
+    documento: Optional[str] = None
+    localidade: Optional[str] = None
+    pasta_drive: Optional[bool] = False
+    origem: Optional[str] = None
+    senha: Optional[str] = None
+    orgao_julgador: Optional[str] = None
+    contra_parte: Optional[str] = None
+    a_ser_feito: Optional[str] = None
+    andamento: Optional[str] = None
     observacao: Optional[str] = None
-    user_id: Optional[UUID] = None
+
+
+class GroupsMappingsUpdateDto(GroupsMappingsDto):
+    user_id: UUID
+
+    model_config = {'from_attributes': True}
 
 
 class GroupsMappingsOutDto(GroupsMappingsDto):
