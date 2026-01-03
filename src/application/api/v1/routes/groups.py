@@ -10,6 +10,7 @@ from src.application.api.v1.schemas.groups import (
     GroupsListOutSchema,
     GroupsMappingsListOutSchema,
     GroupsMappingsOutSchema,
+    GroupsMappingsUpdateSchema,
     GroupsMappinsgSchema,
     GroupsUpdateSchema,
 )
@@ -139,7 +140,9 @@ async def list_users_to_grupo(
     },
 )
 async def updated_user_to_group(
-    controller: GroupsRepositoryDep, group_id: UUID, mappings: GroupsMappinsgSchema
+    controller: GroupsRepositoryDep,
+    group_id: UUID,
+    mappings: GroupsMappingsUpdateSchema,
 ) -> GroupsMappingsOutSchema:
     return await controller.updated_user_to_group(group_id, mappings)
 

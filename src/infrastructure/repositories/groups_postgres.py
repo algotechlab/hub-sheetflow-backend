@@ -11,6 +11,7 @@ from src.core.domain.dtos.groups import (
     GroupsListOutDto,
     GroupsMappingsDto,
     GroupsMappingsOutDto,
+    GroupsMappingsUpdateDto,
     GroupsMappinsgListOutDto,
     GroupsUpdateDto,
 )
@@ -118,22 +119,16 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
             query = (
                 select(
                     MappingsGroups.id,
-                    MappingsGroups.name,
-                    MappingsGroups.depedencias_pid,
-                    MappingsGroups.localidade,
                     MappingsGroups.contato,
+                    MappingsGroups.documento,
                     MappingsGroups.pasta_drive,
-                    MappingsGroups.cpf_cnpj,
-                    MappingsGroups.senha_portal,
-                    MappingsGroups.aba_plataforma,
-                    MappingsGroups.status,
-                    MappingsGroups.data_atual,
-                    MappingsGroups.data_intimacao,
-                    MappingsGroups.prazo,
-                    MappingsGroups.data_final,
-                    MappingsGroups.oficio,
-                    MappingsGroups.valor_indenizacao,
-                    MappingsGroups.valor_honorario,
+                    MappingsGroups.localidade,
+                    MappingsGroups.origem,
+                    MappingsGroups.senha,
+                    MappingsGroups.orgao_julgador,
+                    MappingsGroups.contra_parte,
+                    MappingsGroups.a_ser_feito,
+                    MappingsGroups.andamento,
                     MappingsGroups.observacao,
                     MappingsGroups.groups_id,
                     MappingsGroups.created_at,
@@ -176,7 +171,7 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
             raise DatabaseException(str(error))
 
     async def updated_user_to_group(
-        self, group_id: UUID, mappings: GroupsMappingsDto
+        self, group_id: UUID, mappings: GroupsMappingsUpdateDto
     ) -> list[GroupsMappingsOutDto]:
         try:
             update_data = mappings.model_dump(
