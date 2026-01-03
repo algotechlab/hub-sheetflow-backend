@@ -119,6 +119,7 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
             query = (
                 select(
                     MappingsGroups.id,
+                    MappingsGroups.name,
                     MappingsGroups.contato,
                     MappingsGroups.documento,
                     MappingsGroups.pasta_drive,
