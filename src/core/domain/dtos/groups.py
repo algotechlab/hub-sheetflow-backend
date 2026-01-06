@@ -21,6 +21,7 @@ class GroupOutDto(GroupBaseDto):
 class GroupsListOutDto(BaseModel):
     id: UUID
     name: str
+    total_users: int
     created_at: datetime
     updated_at: datetime
 

@@ -1,7 +1,7 @@
 from typing import Union
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import and_, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
@@ -54,11 +54,24 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
                     Groups.name,
                     Groups.created_at,
                     Groups.updated_at,
+                    func.count(MappingsGroups.groups_id).label('total_users'),
                 )
-                .where(Groups.is_deleted.__eq__(False))
+                .outerjoin(
+                    MappingsGroups,
+                    and_(
+                        MappingsGroups.groups_id.__eq__(Groups.id),
+                        MappingsGroups.is_deleted.is_(False),
+                    ),
+                )
+                .where(Groups.is_deleted.is_(False))
+                .group_by(
+                    Groups.id,
+                    Groups.name,
+                    Groups.created_at,
+                    Groups.updated_at,
+                )
                 .order_by(Groups.created_at)
             )
-
             result = await self.session.execute(query)
             return [
                 GroupsListOutDto.model_validate(row._mapping) for row in result.all()

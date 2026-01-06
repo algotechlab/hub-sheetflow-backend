@@ -21,6 +21,7 @@ class GroupOutSchema(GroupBaseSchema):
 class GroupsListOutSchema(BaseModel):
     id: UUID
     name: str
+    total_users: int
     created_at: datetime
     updated_at: datetime
     model_config = {'from_attributes': True}
