@@ -2,7 +2,7 @@ import re
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, func, text
+from sqlalchemy import DateTime, text
 from sqlalchemy.orm import Mapped, as_declarative, declared_attr, mapped_column
 from sqlalchemy.schema import MetaData
 from src.core.config.settings import get_settings
@@ -21,14 +21,14 @@ class BaseModel:
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        server_default=func.now(),
+        server_default=text("timezone('utc', now())"),
         nullable=False,
     )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
+        server_default=text("timezone('utc', now())"),
+        onupdate=text("timezone('utc', now())"),
         nullable=False,
     )
 

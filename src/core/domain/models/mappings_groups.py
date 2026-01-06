@@ -12,6 +12,7 @@ class MappingsGroups(BaseModel):
     documento: Mapped[str] = mapped_column(String(20), nullable=True)
     pasta_drive: Mapped[bool] = mapped_column(Boolean, default=False)
     localidade: Mapped[str] = mapped_column(String(255), nullable=True)
+    numero_processo: Mapped[str] = mapped_column(String(255), nullable=True)
     origem: Mapped[str] = mapped_column(String(255), nullable=True)
     senha: Mapped[str] = mapped_column(String(255), nullable=True)
     orgao_julgador: Mapped[str] = mapped_column(String(255), nullable=True)

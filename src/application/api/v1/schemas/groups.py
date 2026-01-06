@@ -35,6 +35,7 @@ class GroupsMappinsgSchema(BaseModel):
     contato: Optional[str] = None
     documento: Optional[str] = None
     localidade: Optional[str] = None
+    numero_processo: Optional[str] = None
     pasta_drive: Optional[bool] = False
     origem: Optional[str] = None
     senha: Optional[str] = None

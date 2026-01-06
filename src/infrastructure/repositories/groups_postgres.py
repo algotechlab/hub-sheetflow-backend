@@ -124,6 +124,7 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
                     MappingsGroups.documento,
                     MappingsGroups.pasta_drive,
                     MappingsGroups.localidade,
+                    MappingsGroups.numero_processo,
                     MappingsGroups.origem,
                     MappingsGroups.senha,
                     MappingsGroups.orgao_julgador,
