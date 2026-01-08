@@ -11,6 +11,8 @@ from src.application.api.v1.schemas.finance import (
     FinanceOutFlowBaseSchema,
     FinanceOutFlowOutSchema,
     FinanceOutSchema,
+    UpdatedFinanceOutFlowOutSchema,
+    UpdatedFinanceOutFlowSchema,
     UpdateFinanceBaseSchema,
 )
 
@@ -41,6 +43,42 @@ async def list_finance_out_flow(
     controller: FinanceRepositoryDep, pagination: PaginationParamsDep
 ) -> List[FinanceOutFlowOutSchema]:
     return await controller.list_finance_out_flow(pagination)
+
+
+@router.get(
+    '/outflow/{outflow_id}',
+    description='Rota para detalhar a saída de pagamento',
+    status_code=status.HTTP_200_OK,
+    response_model=FinanceOutFlowOutSchema,
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Detalhamento de saida do pagamento',
+        }
+    },
+)
+async def get_finance_out_flow(
+    controller: FinanceRepositoryDep, outflow_id: UUID
+) -> FinanceOutFlowOutSchema:
+    return await controller.get_finance_out_flow(outflow_id)
+
+
+@router.patch(
+    '/outflow/{outflow_id}',
+    description='Rota para detalhar a saída de pagamento',
+    status_code=status.HTTP_200_OK,
+    response_model=UpdatedFinanceOutFlowOutSchema,
+    responses={
+        status.HTTP_200_OK: {
+            'description': 'Detalhamento de saida do pagamento',
+        }
+    },
+)
+async def updated_finance_out_flow(
+    controller: FinanceRepositoryDep,
+    outflow_id: UUID,
+    outflow: UpdatedFinanceOutFlowSchema,
+) -> UpdatedFinanceOutFlowOutSchema:
+    return await controller.updated_finance_out_flow(outflow_id, outflow)
 
 
 @router.post(

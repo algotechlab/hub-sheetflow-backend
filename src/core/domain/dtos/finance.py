@@ -50,6 +50,20 @@ class FinanceOutFlowOutDto(FinanceOutFlowBaseDto):
     model_config = {'from_attributes': True}
 
 
+class UpdatedFinanceOutFlowDto(BaseModel):
+    description: Optional[str] = None
+    value: Optional[Decimal] = None
+    date_flow: Optional[date] = None
+    installment_numbers: Optional[int] = None
+
+
+class UpdatedFinanceOutFlowOutDto(UpdatedFinanceOutFlowDto):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    model_config = {'from_attributes': True}
+
+
 class FinanceOutByIdDto(FinanceBaseDto):
     id: UUID
     name: str

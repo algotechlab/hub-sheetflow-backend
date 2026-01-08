@@ -50,6 +50,20 @@ class FinanceOutFlowOutSchema(FinanceOutFlowBaseSchema):
     model_config = {'from_attributes': True}
 
 
+class UpdatedFinanceOutFlowSchema(BaseModel):
+    description: Optional[str] = None
+    value: Optional[Decimal] = None
+    date_flow: Optional[date] = None
+    installment_numbers: Optional[int] = None
+
+
+class UpdatedFinanceOutFlowOutSchema(UpdatedFinanceOutFlowSchema):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    model_config = {'from_attributes': True}
+
+
 class FinanceOutByIdSchema(BaseModel):
     id: UUID
     name: str

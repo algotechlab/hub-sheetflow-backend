@@ -9,6 +9,8 @@ from src.core.domain.dtos.finance import (
     FinanceOutDto,
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
+    UpdatedFinanceOutFlowDto,
+    UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
 )
 from src.core.domain.exceptions.finance import FinanceNotFoundException
@@ -31,6 +33,14 @@ class FinanceUseCase:
         self, pagination: PaginationParamsDTO
     ) -> List[FinanceOutFlowOutDto]:
         return await self.finance_service.list_finance_out_flow(pagination)
+
+    async def get_finance_out_flow(self, outflow_id: UUID) -> FinanceOutFlowOutDto:
+        return await self.finance_service.get_finance_out_flow(outflow_id)
+
+    async def updated_finance_out_flow(
+        self, outflow_id: UUID, outflow: UpdatedFinanceOutFlowDto
+    ) -> UpdatedFinanceOutFlowOutDto:
+        return await self.finance_service.updated_finance_out_flow(outflow_id, outflow)
 
     async def add_finance_outflow(
         self, finance_outflow: FinanceOutFlowBaseDto

@@ -11,6 +11,8 @@ from src.core.domain.dtos.finance import (
     FinanceOutByIdDto,
     FinanceOutDto,
     FinanceOutFlowOutDto,
+    UpdatedFinanceOutFlowDto,
+    UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
 )
 from src.core.domain.interface.finance import FinanceRepositoriesInterface
@@ -113,6 +115,66 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             await self.session.rollback()
             raise DatabaseException(str(error))
 
+    async def get_finance_out_flow(self, outflow_id: UUID) -> FinanceOutFlowOutDto:
+        try:
+            query = select(
+                FinanceOutFlowBox.id,
+                FinanceOutFlowBox.description,
+                FinanceOutFlowBox.value,
+                FinanceOutFlowBox.date_flow,
+                FinanceOutFlowBox.installment_numbers,
+                FinanceOutFlowBox.created_at,
+                FinanceOutFlowBox.updated_at,
+            ).where(
+                FinanceOutFlowBox.id.__eq__(outflow_id),
+                FinanceOutFlowBox.is_deleted.__eq__(False),
+            )
+
+            result = await self.session.execute(query)
+            row = result.one_or_none()
+
+            if not row:
+                return None
+
+            return FinanceOutFlowOutDto.model_validate(row._mapping)
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def updated_finance_out_flow(
+        self, outflow_id: UUID, outflow: UpdatedFinanceOutFlowDto
+    ) -> UpdatedFinanceOutFlowOutDto:
+        try:
+            values = outflow.model_dump(
+                exclude_unset=True,
+                exclude_none=True,
+            )
+            if not values:
+                return None
+
+            stmt = (
+                update(FinanceOutFlowBox)
+                .where(
+                    FinanceOutFlowBox.id.__eq__(outflow_id),
+                    FinanceOutFlowBox.is_deleted.is_(False),
+                )
+                .values(**values)
+                .returning(FinanceOutFlowBox)
+            )
+
+            result = await self.session.execute(stmt)
+            await self.session.commit()
+
+            updated_finance = result.scalar_one_or_none()
+
+            if not updated_finance:
+                return None
+
+            return UpdatedFinanceOutFlowOutDto.model_validate(updated_finance)
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
     async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto:
         try:
             query = select(
@@ -155,7 +217,7 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             stmt = (
                 update(Finance)
                 .where(
-                    Finance.id == finance_id,
+                    Finance.id.__eq__(finance_id),
                     Finance.is_deleted.is_(False),
                 )
                 .values(**values)

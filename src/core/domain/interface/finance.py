@@ -9,6 +9,8 @@ from src.core.domain.dtos.finance import (
     FinanceOutDto,
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
+    UpdatedFinanceOutFlowDto,
+    UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
 )
 
@@ -31,6 +33,14 @@ class FinanceRepositoriesInterface(ABC):
     async def list_finance_out_flow(
         self, pagination: PaginationParamsDTO
     ) -> List[FinanceOutFlowOutDto]: ...
+
+    @abstractmethod
+    async def get_finance_out_flow(self, outflow_id: UUID) -> FinanceOutFlowOutDto: ...
+
+    @abstractmethod
+    async def updated_finance_out_flow(
+        self, outflow_id: UUID, outflow: UpdatedFinanceOutFlowDto
+    ) -> UpdatedFinanceOutFlowOutDto: ...
 
     @abstractmethod
     async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto | None: ...

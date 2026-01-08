@@ -9,6 +9,8 @@ from src.core.domain.dtos.finance import (
     FinanceOutDto,
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
+    UpdatedFinanceOutFlowDto,
+    UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
 )
 from src.core.domain.interface.finance import FinanceRepositoriesInterface
@@ -30,6 +32,16 @@ class FinanceService:
         self, pagination: PaginationParamsDTO
     ) -> List[FinanceOutFlowOutDto]:
         return await self.finance_repository.list_finance_out_flow(pagination)
+
+    async def get_finance_out_flow(self, outflow_id: UUID) -> FinanceOutFlowOutDto:
+        return await self.finance_repository.get_finance_out_flow(outflow_id)
+
+    async def updated_finance_out_flow(
+        self, outflow_id: UUID, outflow: UpdatedFinanceOutFlowDto
+    ) -> UpdatedFinanceOutFlowOutDto:
+        return await self.finance_repository.updated_finance_out_flow(
+            outflow_id, outflow
+        )
 
     async def add_finance_outflow(
         self, finance_outflow: FinanceOutFlowBaseDto
