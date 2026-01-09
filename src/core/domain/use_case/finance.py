@@ -9,6 +9,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutDto,
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
+    HistoryFinanceDto,
     UpdatedFinanceOutFlowDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
@@ -49,6 +50,9 @@ class FinanceUseCase:
 
     async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto:
         return await self.finance_service.get_finance(finance_id)
+
+    async def get_history_finance(self, finace_id: UUID) -> HistoryFinanceDto:
+        return await self.finance_service.get_history_finance(finace_id)
 
     async def update_finance(
         self, finance_id: UUID, finance: UpdateFinanceBaseDto

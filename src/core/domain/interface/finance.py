@@ -9,6 +9,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutDto,
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
+    HistoryFinanceDto,
     UpdatedFinanceOutFlowDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
@@ -44,6 +45,9 @@ class FinanceRepositoriesInterface(ABC):
 
     @abstractmethod
     async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto | None: ...
+
+    @abstractmethod
+    async def get_history_finance(self, finace_id: UUID) -> HistoryFinanceDto: ...
 
     @abstractmethod
     async def update_finance(

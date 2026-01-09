@@ -11,6 +11,7 @@ from src.application.api.v1.schemas.finance import (
     FinanceOutFlowBaseSchema,
     FinanceOutFlowOutSchema,
     FinanceOutSchema,
+    HistoryFinanceSchema,
     UpdatedFinanceOutFlowOutSchema,
     UpdatedFinanceOutFlowSchema,
     UpdateFinanceBaseSchema,
@@ -101,13 +102,25 @@ async def add_finance(
 @router.get(
     '/{finance_id}',
     description='Rota para buscar o pagamento',
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     response_model=FinanceOutByIdSchema,
 )
 async def get_finance(
     controller: FinanceRepositoryDep, finance_id: UUID
 ) -> FinanceOutByIdSchema:
     return await controller.get_finance(finance_id)
+
+
+@router.get(
+    '/history/{finance_id}',
+    description='Rota para buscar o histórico de um pagamento',
+    status_code=status.HTTP_200_OK,
+    response_model=HistoryFinanceSchema,
+)
+async def get_history_finance(
+    controller: FinanceRepositoryDep, finance_id: UUID
+) -> HistoryFinanceSchema:
+    return await controller.get_history_finance(finance_id)
 
 
 @router.get(

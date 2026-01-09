@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import Numeric, cast, literal, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.domain.dtos.common.pagination import PaginationParamsDTO
@@ -11,6 +11,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutByIdDto,
     FinanceOutDto,
     FinanceOutFlowOutDto,
+    HistoryFinanceDto,
     UpdatedFinanceOutFlowDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
@@ -198,6 +199,46 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
                 return None
 
             return FinanceOutByIdDto.model_validate(row._mapping)
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def get_history_finance(self, finance_id: UUID) -> HistoryFinanceDto:
+        try:
+            installment_value = cast(Finance.total / literal(10), Numeric(10, 2)).label(
+                'installment_value'
+            )
+
+            total_calculated = cast(
+                Finance.installment_numbers * (Finance.total / literal(10)),
+                Numeric(10, 2),
+            ).label('total_calculated')
+
+            query = (
+                select(
+                    Finance.id,
+                    Finance.name,
+                    Finance.date_contract,
+                    Finance.document,
+                    Finance.installment_numbers,
+                    Finance.total,
+                    Finance.created_at,
+                    Finance.updated_at,
+                    installment_value,
+                    total_calculated,
+                )
+                .where(
+                    Finance.id.__eq__(finance_id),
+                    Finance.is_deleted.is_(False),
+                )
+                .order_by(Finance.created_at)
+            )
+
+            result = await self.session.execute(query)
+            row = result.first()
+
+            return HistoryFinanceDto.model_validate(row._mapping)
+
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

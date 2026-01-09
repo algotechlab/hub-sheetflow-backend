@@ -9,6 +9,7 @@ from src.application.api.v1.schemas.finance import (
     FinanceOutFlowBaseSchema,
     FinanceOutFlowOutSchema,
     FinanceOutSchema,
+    HistoryFinanceSchema,
     UpdatedFinanceOutFlowOutSchema,
     UpdatedFinanceOutFlowSchema,
 )
@@ -60,6 +61,10 @@ class FinanceController:
     async def get_finance(self, finance_id: UUID) -> FinanceOutByIdSchema:
         finance_case = await self.use_case.get_finance(finance_id)
         return FinanceOutByIdSchema.model_validate(finance_case)
+
+    async def get_history_finance(self, finance_id: UUID) -> HistoryFinanceSchema:
+        finance_case = await self.use_case.get_history_finance(finance_id)
+        return HistoryFinanceSchema.model_validate(finance_case)
 
     async def update_finance(
         self, finance_id: UUID, finance: FinanceBaseSchema
