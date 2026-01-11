@@ -1,0 +1,15 @@
+from datetime import date
+from decimal import Decimal
+from uuid import UUID
+
+from sqlalchemy.orm import Mapped, mapped_column
+from src.core.domain.models.base import BaseModel
+
+
+class NotificationJobs(BaseModel):
+    type: Mapped[str]
+    name: Mapped[str]
+    date_contract: Mapped[date]
+    amount: Mapped[Decimal]
+    finance_id: Mapped[UUID]
+    executed: Mapped[bool] = mapped_column(default=False)
