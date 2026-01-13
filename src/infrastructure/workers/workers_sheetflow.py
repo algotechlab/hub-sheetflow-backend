@@ -1,7 +1,9 @@
 import asyncio
 from datetime import date, datetime, timezone
+from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config.logger import logger
 from src.core.config.settings import get_settings
@@ -23,6 +25,23 @@ class FinanceNotificationWorker:
         self.contact_phone = settings.FINANCE_NOTIFICATION_PHONE
         self._running = True
 
+    async def _get_overdue_installments(
+        self,
+        session: AsyncSession,
+    ) -> list[tuple[UUID, UUID]]:
+        stmt = (
+            select(
+                InstallmentPayment.id,
+                InstallmentPayment.finance_id,
+            )
+            .where(InstallmentPayment.paid_at.is_(None))
+            .where(InstallmentPayment.charged_at.is_(None))
+            .where(InstallmentPayment.due_date <= date.today())
+        )
+
+        result = await session.execute(stmt)
+        return result.all()
+
     @staticmethod
     def _build_message(
         finance: Finance,
@@ -32,18 +51,36 @@ class FinanceNotificationWorker:
             f'📌 *Alerta Financeiro*\n\n'
             f'Cliente: {finance.name}\n'
             f'Parcela: {installment.installment_number}\n'
-            f'Valor: R$ {installment.value}\n'
-            f'Vencimento: {installment.due_date:%d/%m/%Y}\n\n'
+            f'Valor: R$ {installment.value}\n\n'
             f'⚠️ Parcela vencida. Realizar cobrança.'
         )
 
     async def _process_installment(
         self,
-        installment: InstallmentPayment,
-        finance: Finance,
+        installment_id: UUID,
+        finance_id: UUID,
     ) -> None:
         async with self.session_factory() as session:
             try:
+                installment = await session.get(
+                    InstallmentPayment,
+                    installment_id,
+                )
+                finance = await session.get(
+                    Finance,
+                    finance_id,
+                )
+
+                if not installment or not finance:
+                    logger.warning(
+                        '⚠️ Finance ou parcela não encontrados',
+                        extra={
+                            'installment_id': installment_id,
+                            'finance_id': finance_id,
+                        },
+                    )
+                    return
+
                 exists_stmt = (
                     select(NotificationJobs.id)
                     .where(NotificationJobs.finance_id.__eq__(finance.id))
@@ -78,12 +115,13 @@ class FinanceNotificationWorker:
                     message=message,
                 )
 
+                installment.charged_at = datetime.now(tz=timezone.utc)
                 job.executed = True
-                installment.paid_at = datetime.now(tz=timezone.utc)
+
                 await session.commit()
 
                 logger.info(
-                    '📨 Cobrança enviada',
+                    '📨 Cobrança enviada com sucesso',
                     extra={
                         'finance_id': finance.id,
                         'installment': installment.installment_number,
@@ -96,25 +134,23 @@ class FinanceNotificationWorker:
                 logger.exception(
                     '❌ Erro ao processar parcela',
                     extra={
-                        'finance_id': finance.id,
-                        'installment': installment.installment_number,
+                        'installment_id': installment_id,
+                        'finance_id': finance_id,
                     },
                 )
 
     async def _run_cycle(self) -> None:
         async with self.session_factory() as session:
-            stmt = (
-                select(InstallmentPayment, Finance)
-                .join(Finance, Finance.id.__eq__(InstallmentPayment.finance_id))
-                .where(InstallmentPayment.paid_at.is_(None))
-                .where(InstallmentPayment.due_date <= date.today())
+            overdue_installments = await self._get_overdue_installments(session)
+
+        if not overdue_installments:
+            return
+
+        for installment_id, finance_id in overdue_installments:
+            await self._process_installment(
+                installment_id=installment_id,
+                finance_id=finance_id,
             )
-
-            result = await session.execute(stmt)
-            rows = result.all()
-
-        for installment, finance in rows:
-            await self._process_installment(installment, finance)
 
     async def run(self) -> None:
         logger.info('🚀 FinanceNotificationWorker iniciado')
