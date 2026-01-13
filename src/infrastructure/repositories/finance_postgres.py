@@ -14,6 +14,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutDto,
     FinanceOutFlowOutDto,
     HistoryFinanceDto,
+    InstallmentOutDto,
     UpdatedFinanceOutFlowDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
@@ -206,29 +207,55 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             await self.session.rollback()
             raise DatabaseException(str(error))
 
-    async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto:
+    async def get_finance(self, finance_id: UUID) -> FinanceOutByIdDto | None:
         try:
-            query = select(
-                Finance.id,
-                Finance.name,
-                Finance.date_contract,
-                Finance.document,
-                Finance.installment_numbers,
-                Finance.total,
-                Finance.created_at,
-                Finance.updated_at,
-            ).where(
-                Finance.id.__eq__(finance_id),
-                Finance.is_deleted.__eq__(False),
+            stmt = (
+                select(
+                    Finance.id,
+                    Finance.name,
+                    Finance.date_contract,
+                    Finance.document,
+                    InstallmentPayment.installment_number,
+                    InstallmentPayment.paid_at,
+                    InstallmentPayment.due_date,
+                    InstallmentPayment.value.label('installment_value'),
+                    Finance.total,
+                )
+                .outerjoin(
+                    InstallmentPayment, InstallmentPayment.finance_id.__eq__(Finance.id)
+                )
+                .where(Finance.id.__eq__(finance_id))
+                .where(Finance.is_deleted.is_(False))
             )
 
-            result = await self.session.execute(query)
-            row = result.one_or_none()
+            result = await self.session.execute(stmt)
+            rows = result.all()
 
-            if not row:
+            if not rows:
                 return None
 
-            return FinanceOutByIdDto.model_validate(row._mapping)
+            finance = rows[0]
+
+            installments = [
+                InstallmentOutDto(
+                    installment_number=row.installment_number,
+                    paid_at=row.paid_at,
+                    due_date=row.due_date,
+                    value=row.installment_value,
+                )
+                for row in rows
+                if row.installment_number is not None
+            ]
+
+            return FinanceOutByIdDto(
+                id=finance.id,
+                name=finance.name,
+                date_contract=finance.date_contract,
+                document=finance.document,
+                total=finance.total,
+                installments=installments,
+            )
+
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

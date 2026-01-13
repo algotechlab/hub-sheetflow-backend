@@ -64,15 +64,23 @@ class UpdatedFinanceOutFlowOutDto(UpdatedFinanceOutFlowDto):
     model_config = {'from_attributes': True}
 
 
-class FinanceOutByIdDto(FinanceBaseDto):
+class InstallmentOutDto(BaseModel):
+    installment_number: int
+    paid_at: datetime | None
+    due_date: datetime
+    value: Decimal
+
+    model_config = {'from_attributes': True}
+
+
+class FinanceOutByIdDto(BaseModel):
     id: UUID
     name: str
     date_contract: date
     document: str
-    installment_numbers: int
     total: Decimal
-    created_at: datetime
-    updated_at: datetime
+    installments: list[InstallmentOutDto]
+
     model_config = {'from_attributes': True}
 
 
