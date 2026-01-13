@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -91,3 +91,18 @@ class HistoryFinanceDto(FinanceBaseDto):
     installment_value: Decimal
     total_calculated: Decimal
     model_config = {'from_attributes': True}
+
+
+class InstallmentUpdateItem(BaseModel):
+    installment_number: int
+    paid_at: Optional[datetime] = None
+
+
+class UpdatedFinanceInstallNumbersDto(BaseModel):
+    installments: List[InstallmentUpdateItem]
+
+
+class UpdatedFinanceInstallNumbersOutDto(UpdatedFinanceInstallNumbersDto):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime

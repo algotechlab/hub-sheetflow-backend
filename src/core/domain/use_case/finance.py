@@ -10,6 +10,8 @@ from src.core.domain.dtos.finance import (
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
     HistoryFinanceDto,
+    UpdatedFinanceInstallNumbersDto,
+    UpdatedFinanceInstallNumbersOutDto,
     UpdatedFinanceOutFlowDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
@@ -61,6 +63,13 @@ class FinanceUseCase:
         if result is None:
             raise FinanceNotFoundException(f'Esse {finance_id} não foi encontrado.')
         return result
+
+    async def updated_finance_install_numbers(
+        self, finance_id: UUID, install_numbers: UpdatedFinanceInstallNumbersDto
+    ) -> UpdatedFinanceInstallNumbersOutDto:
+        return await self.finance_service.updated_finance_install_numbers(
+            finance_id, install_numbers
+        )
 
     async def delete_finance(self, finance_id: UUID) -> None:
         result = await self.finance_service.delete_finance(finance_id)
