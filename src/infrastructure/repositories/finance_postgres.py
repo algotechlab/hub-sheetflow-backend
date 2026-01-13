@@ -1,3 +1,5 @@
+from datetime import timedelta
+from decimal import Decimal
 from typing import List
 from uuid import UUID
 
@@ -19,6 +21,7 @@ from src.core.domain.dtos.finance import (
 from src.core.domain.interface.finance import FinanceRepositoriesInterface
 from src.core.domain.models.finance import Finance
 from src.core.domain.models.financial_outflow_box import FinanceOutFlowBox
+from src.core.domain.models.installment_payment import InstallmentPayment
 from src.core.exceptions.custom import DatabaseException
 
 
@@ -26,13 +29,40 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def add_finance(self, finance: FinanceBaseDto) -> FinanceOutDto:
+    async def add_finance(
+        self,
+        finance: FinanceBaseDto,
+    ) -> FinanceOutDto:
         try:
             db_finance = Finance(**finance.model_dump())
             self.session.add(db_finance)
+            await self.session.flush()
+
+            installment_value = (
+                finance.total / Decimal(finance.installment_numbers)
+            ).quantize(Decimal('0.01'))
+
+            installments: list[InstallmentPayment] = []
+
+            for number in range(1, finance.installment_numbers + 1):
+                due_date = finance.date_contract + timedelta(days=30 * number)
+
+                installment = InstallmentPayment(
+                    installment_number=number,
+                    value=installment_value,
+                    due_date=due_date,
+                    finance_id=db_finance.id,
+                )
+
+                installments.append(installment)
+
+            self.session.add_all(installments)
+
             await self.session.commit()
             await self.session.refresh(db_finance)
+
             return FinanceOutDto.model_validate(db_finance)
+
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

@@ -1,19 +1,88 @@
 version: "3.8"
 
 services:
+  evolution-api:
+    container_name: evolution_api
+    image: evoapicloud/evolution-api:v2.3.6
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    environment:
+      AUTHENTICATION_API_KEY: apikey321
+      CONFIG_SESSION_PHONE_VERSION: 2.3000.1029560485
+      BAILEYS_VERSION: 2.3000.1029560485
+      DATABASE_ENABLED: "true"
+      DATABASE_PROVIDER: postgresql
+      DATABASE_CONNECTION_URI: postgresql://postgres:postgres@postgres:5432/postgres
+      CACHE_REDIS_ENABLED: "true"
+      CACHE_REDIS_URI: redis://redis:6379/6
+      CACHE_REDIS_PREFIX_KEY: evolution
+      CACHE_REDIS_SAVE_INSTANCES: "true"
+      CACHE_LOCAL_ENABLED: "false"
+    volumes:
+      - evolution_instances:/evolution/instances
+    networks:
+      - evolution-net
+
+  postgres:
+    image: postgres:15
+    container_name: evolution_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5441:5432"
+    networks:
+      - evolution-net
+    command: >
+      -c listen_addresses=*
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c work_mem=8MB
+      -c log_min_messages=WARNING
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: evolution_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - evolution-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   fastapi_database:
     image: postgres:15
     container_name: fastapi_database
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=sheetflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sheetflow
     volumes:
       - fastapi_database_data:/var/lib/postgresql/data
     ports:
       - "5477:5432"
-
+    networks:
+      - fastapi-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d sheetflow"]
       interval: 5s
@@ -22,23 +91,49 @@ services:
       start_period: 5s
 
   fast_api-sheetflow:
+    container_name: fast_api_sheetflow
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fast_api-sheetflow
+    restart: always
     depends_on:
       fastapi_database:
         condition: service_healthy
-    restart: always
     ports:
       - "8000:8000"
     environment:
-      - SQLALCHEMY_DATABASE_URI=postgresql+asyncpg://postgres:postgres@fastapi_database:5432/sheetflow
-      - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,fast_api-sheetflow
+      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://postgres:postgres@fastapi_database:5432/sheetflow
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1,fast_api-sheetflow
     volumes:
       - .:/app
+    networks:
+      - fastapi-net
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000
 
+  finance_worker:
+    container_name: finance_notification_worker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m src.infrastructure.workers.main
+    restart: always
+    depends_on:
+      fastapi_database:
+        condition: service_healthy
+    environment:
+      SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://postgres:postgres@fastapi_database:5432/sheetflow
+    networks:
+      - fastapi-net
+      - evolution-net
+
 volumes:
+  evolution_instances:
+  postgres_data:
   fastapi_database_data:
+
+networks:
+  evolution-net:
+    driver: bridge
+  fastapi-net:
+    driver: bridge

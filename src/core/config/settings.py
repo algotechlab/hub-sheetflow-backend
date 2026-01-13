@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     # schema
     POSTGRES_SCHEMA: str = 'sheetflow'
 
+    # Evolution api external config
+    EVOLUTION_API_URL: str
+    EVOLUTION_INSTANCE: str
+    EVOLUTION_API_KEY: str
+    FINANCE_NOTIFICATION_PHONE: str
+
     @field_validator('BACKEND_CORS_ORIGINS', mode='before')
     def split_origins(cls, value: Any) -> Union[List[str], List[AnyHttpUrl]]:
         """
