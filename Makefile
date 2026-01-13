@@ -49,3 +49,9 @@ lint-watch:
 
 lint-fix:
 	poetry run ruff src --fix
+
+init-db:
+	poetry run alembic upgrade head
+
+alembic-init:
+	poetry run alembic init migrations

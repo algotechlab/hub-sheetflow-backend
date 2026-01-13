@@ -2,6 +2,8 @@ FROM python:3.13-slim
 
 WORKDIR /src
 
+ENV PYTHONPATH=/src
+
 # Dependências do Postgres + compilação
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
@@ -26,6 +28,11 @@ COPY src /src/src
 COPY alembic.ini .
 COPY migrations /src/migrations
 COPY .env .
+COPY entrypoints /src/entrypoints
 
 # Rodar migrações no container
-CMD alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000
+RUN chmod +x /src/entrypoints/*.sh
+
+ENTRYPOINT ["/src/entrypoints/init-app.sh"]
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
