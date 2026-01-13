@@ -1,3 +1,5 @@
+from datetime import timedelta
+from decimal import Decimal
 from typing import List
 from uuid import UUID
 
@@ -19,7 +21,7 @@ from src.core.domain.dtos.finance import (
 from src.core.domain.interface.finance import FinanceRepositoriesInterface
 from src.core.domain.models.finance import Finance
 from src.core.domain.models.financial_outflow_box import FinanceOutFlowBox
-from src.core.domain.models.notification_jobs import NotificationJobs
+from src.core.domain.models.installment_payment import InstallmentPayment
 from src.core.exceptions.custom import DatabaseException
 
 
@@ -36,15 +38,25 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             self.session.add(db_finance)
             await self.session.flush()
 
-            job = NotificationJobs(
-                name=f'Cobrança {finance.name}',
-                type='FINANCE_DUE_ALERT',
-                date_contract=finance.date_contract,
-                amount=finance.total,
-                finance_id=db_finance.id,
-            )
+            installment_value = (
+                finance.total / Decimal(finance.installment_numbers)
+            ).quantize(Decimal('0.01'))
 
-            self.session.add(job)
+            installments: list[InstallmentPayment] = []
+
+            for number in range(1, finance.installment_numbers + 1):
+                due_date = finance.date_contract + timedelta(days=30 * number)
+
+                installment = InstallmentPayment(
+                    installment_number=number,
+                    value=installment_value,
+                    due_date=due_date,
+                    finance_id=db_finance.id,
+                )
+
+                installments.append(installment)
+
+            self.session.add_all(installments)
 
             await self.session.commit()
             await self.session.refresh(db_finance)

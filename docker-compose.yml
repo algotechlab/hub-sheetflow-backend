@@ -125,6 +125,7 @@ services:
       SQLALCHEMY_DATABASE_URI: postgresql+asyncpg://postgres:postgres@fastapi_database:5432/sheetflow
     networks:
       - fastapi-net
+      - evolution-net
 
 volumes:
   evolution_instances:

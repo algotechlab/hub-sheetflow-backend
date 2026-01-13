@@ -11,5 +11,6 @@ class NotificationJobs(BaseModel):
     name: Mapped[str]
     date_contract: Mapped[date]
     amount: Mapped[Decimal]
+    installment_numbers: Mapped[int]
     finance_id: Mapped[UUID]
     executed: Mapped[bool] = mapped_column(default=False)
