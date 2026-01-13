@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -90,4 +90,21 @@ class HistoryFinanceSchema(FinanceBaseSchema):
     updated_at: datetime
     installment_value: Decimal
     total_calculated: Decimal
+    model_config = {'from_attributes': True}
+
+
+class InstallmentUpdateItem(BaseModel):
+    installment_number: int
+    paid_at: Optional[datetime] = None
+
+
+class UpdatedFinanceInstallNumbersSchema(BaseModel):
+    installments: List[InstallmentUpdateItem]
+    model_config = {'from_attributes': True}
+
+
+class UpdatedFinanceInstallNumbersOutSchema(UpdatedFinanceInstallNumbersSchema):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
     model_config = {'from_attributes': True}

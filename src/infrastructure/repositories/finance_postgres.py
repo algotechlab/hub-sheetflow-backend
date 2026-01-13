@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import List
 from uuid import UUID
@@ -15,6 +15,9 @@ from src.core.domain.dtos.finance import (
     FinanceOutFlowOutDto,
     HistoryFinanceDto,
     InstallmentOutDto,
+    InstallmentUpdateItem,
+    UpdatedFinanceInstallNumbersDto,
+    UpdatedFinanceInstallNumbersOutDto,
     UpdatedFinanceOutFlowDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
@@ -224,8 +227,11 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
                 .outerjoin(
                     InstallmentPayment, InstallmentPayment.finance_id.__eq__(Finance.id)
                 )
-                .where(Finance.id.__eq__(finance_id))
-                .where(Finance.is_deleted.is_(False))
+                .where(
+                    Finance.id.__eq__(finance_id),
+                    Finance.is_deleted.__eq__(False),
+                    InstallmentPayment.is_deleted.__eq__(False),
+                )
             )
 
             result = await self.session.execute(stmt)
@@ -331,6 +337,60 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
                 return None
 
             return FinanceOutDto.model_validate(updated_finance)
+
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def updated_finance_install_numbers(
+        self,
+        finance_id: UUID,
+        install_numbers: UpdatedFinanceInstallNumbersDto,
+    ) -> UpdatedFinanceInstallNumbersOutDto:
+        try:
+            updated_installments: list[InstallmentUpdateItem] = []
+            updated_at: datetime | None = None
+
+            for item in install_numbers.installments:
+                stmt = (
+                    update(InstallmentPayment)
+                    .where(
+                        InstallmentPayment.finance_id.__eq__(finance_id),
+                        InstallmentPayment.installment_number.__eq__(
+                            item.installment_number
+                        ),
+                        InstallmentPayment.is_deleted.is_(False),
+                    )
+                    .values(
+                        paid_at=datetime.now(),
+                    )
+                    .returning(
+                        InstallmentPayment.id,
+                        InstallmentPayment.installment_number,
+                        InstallmentPayment.updated_at,
+                    )
+                )
+
+                result = await self.session.execute(stmt)
+                row = result.mappings().one_or_none()
+
+                updated_installments.append(
+                    InstallmentUpdateItem(
+                        installment_number=row['installment_number'],
+                        paid_at=item.paid_at,
+                    )
+                )
+
+                updated_at = row['updated_at']
+
+            await self.session.commit()
+
+            return UpdatedFinanceInstallNumbersOutDto(
+                id=finance_id,
+                installments=updated_installments,
+                created_at=updated_at,
+                updated_at=updated_at,
+            )
 
         except Exception as error:
             await self.session.rollback()

@@ -10,6 +10,8 @@ from src.core.domain.dtos.finance import (
     FinanceOutFlowBaseDto,
     FinanceOutFlowOutDto,
     HistoryFinanceDto,
+    UpdatedFinanceInstallNumbersDto,
+    UpdatedFinanceInstallNumbersOutDto,
     UpdatedFinanceOutFlowDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
@@ -59,6 +61,13 @@ class FinanceService:
         self, finance_id: UUID, finance: UpdateFinanceBaseDto
     ) -> FinanceOutDto:
         return await self.finance_repository.update_finance(finance_id, finance)
+
+    async def updated_finance_install_numbers(
+        self, finance_id: UUID, install_numbers: UpdatedFinanceInstallNumbersDto
+    ) -> UpdatedFinanceInstallNumbersOutDto:
+        return await self.finance_repository.updated_finance_install_numbers(
+            finance_id, install_numbers
+        )
 
     async def delete_finance(self, finance_id: UUID) -> bool:
         return await self.finance_repository.delete_finance(finance_id)

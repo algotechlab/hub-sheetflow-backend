@@ -12,6 +12,8 @@ from src.application.api.v1.schemas.finance import (
     FinanceOutFlowOutSchema,
     FinanceOutSchema,
     HistoryFinanceSchema,
+    UpdatedFinanceInstallNumbersOutSchema,
+    UpdatedFinanceInstallNumbersSchema,
     UpdatedFinanceOutFlowOutSchema,
     UpdatedFinanceOutFlowSchema,
     UpdateFinanceBaseSchema,
@@ -169,6 +171,20 @@ async def updated_finance(
     finance: UpdateFinanceBaseSchema,
 ) -> FinanceOutSchema:
     return await controller.update_finance(finance_id, finance)
+
+
+@router.patch(
+    '/{finance_id}/installments',
+    description='Rota para atualizar o pagamento',
+    status_code=status.HTTP_200_OK,
+    response_model=UpdatedFinanceInstallNumbersOutSchema,
+)
+async def updated_finance_install_numbers(
+    controller: FinanceRepositoryDep,
+    finance_id: UUID,
+    finance: UpdatedFinanceInstallNumbersSchema,
+) -> UpdatedFinanceInstallNumbersOutSchema:
+    return await controller.updated_finance_install_numbers(finance_id, finance)
 
 
 @router.delete(
