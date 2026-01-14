@@ -51,10 +51,10 @@ class FinanceOutFlowNotificationWorker:
     ) -> str:
         return (
             f'📌 *Alerta Financeiro*\n\n'
-            f'Cliente: {finance_out_flow_box.description}\n'
-            f'Data de vencimento: {installment.due_date}\n'
+            f'Cobrança: {finance_out_flow_box.description}\n'
+            f'Data de vencimento da parcela: {installment.due_date}\n'
             f'Valor da parcela: R$ {installment.value}\n\n'
-            f'⚠️ Parcela vencida. Realizar cobrança.'
+            f'⚠️ Cobrança vencida. Realizar pagamento.'
         )
 
     async def _process_installment(
