@@ -15,7 +15,7 @@ class IndicadorAnalysisRepositoryPostgres:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def get_summary_indicator_analysis(self) -> IndicatorAnalysisBaseDto:
+    async def get_summary_indicator_analysis(self) -> IndicatorAnalysisBaseDto | None:
         try:
             # ---------- Core ----------
             total_groups = (
@@ -118,6 +118,10 @@ class IndicadorAnalysisRepositoryPostgres:
             )
 
             result = await self.session.execute(stmt)
+
+            if not result:
+                return None
+
             return IndicatorAnalysisBaseDto.model_validate(result.mappings().one())
 
         except Exception as error:

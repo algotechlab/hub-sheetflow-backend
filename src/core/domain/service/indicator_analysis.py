@@ -10,5 +10,5 @@ class IndicatorAnalysisService:
     ):
         self.indicator_analysis_repository = indicator_analysis_repository
 
-    async def get_summary_indicator_analysis(self) -> IndicatorAnalysisBaseDto:
+    async def get_summary_indicator_analysis(self) -> IndicatorAnalysisBaseDto | None:
         return await self.indicator_analysis_repository.get_summary_indicator_analysis()

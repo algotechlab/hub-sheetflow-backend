@@ -1,25 +1,25 @@
 from decimal import Decimal
+from typing import Optional
 
 from pydantic import BaseModel
 
 
 class IndicatorAnalysisBaseSchema(BaseModel):
-    # Core
-    total_groups: int
-    total_users: int
-    total_clients: int
+    total_groups: Optional[int] = None
+    total_users: Optional[int] = None
+    total_clients: Optional[int] = None
 
     # Financeiro
-    total_to_receive: Decimal
-    total_exit: Decimal
-    net_balance: Decimal
+    total_to_receive: Optional[Decimal] = None
+    total_exit: Optional[Decimal] = None
+    net_balance: Optional[Decimal] = None
 
     # Parcelas
-    total_pending_installments: int
-    total_installments: int
+    total_pending_installments: Optional[int] = None
+    total_installments: Optional[int] = None
 
     # KPIs derivados
-    average_ticket: Decimal  # ticket médio
-    exit_percentage: Decimal  # % saídas / receitas
-    default_rate: Decimal  # % inadimplência
-    revenue_per_group: Decimal  # receita média por grupo
+    average_ticket: Optional[Decimal] = None
+    exit_percentage: Optional[Decimal] = None
+    default_rate: Optional[Decimal] = None
+    revenue_per_group: Optional[Decimal] = None
