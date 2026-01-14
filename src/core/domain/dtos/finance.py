@@ -69,7 +69,6 @@ class InstallmentOutDto(BaseModel):
     paid_at: datetime | None
     due_date: datetime
     value: Decimal
-    charged_at: datetime | None
 
     model_config = {'from_attributes': True}
 
