@@ -6,5 +6,5 @@ class IndicatorAnalysisUseCase:
     def __init__(self, indicator_analysis_service: IndicatorAnalysisService):
         self.indicator_analysis_service = indicator_analysis_service
 
-    async def get_summary_indicator_analysis(self) -> IndicatorAnalysisBaseDto:
+    async def get_summary_indicator_analysis(self) -> IndicatorAnalysisBaseDto | None:
         return await self.indicator_analysis_service.get_summary_indicator_analysis()

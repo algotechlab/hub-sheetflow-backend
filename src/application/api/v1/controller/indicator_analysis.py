@@ -8,7 +8,9 @@ class IndicatorAnalysisController:
     def __init__(self, use_case: IndicatorAnalysisUseCase):
         self.use_case = use_case
 
-    async def get_summary_indicator_analysis(self) -> IndicatorAnalysisBaseSchema:
+    async def get_summary_indicator_analysis(
+        self,
+    ) -> IndicatorAnalysisBaseSchema | None:
         indicator_analysis = await self.use_case.get_summary_indicator_analysis()
         return IndicatorAnalysisBaseSchema.model_validate(
             indicator_analysis.model_dump()
