@@ -59,6 +59,16 @@ class FinanceOutFlowOutSchema(BaseModel):
     description: str
     value: Decimal
     date_flow: date
+    model_config = {'from_attributes': True}
+
+
+class FinanceOutFlowByIdSchema(BaseModel):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    description: str
+    value: Decimal
+    date_flow: date
     installment_numbers: Optional[int] = None
     installments: List[InstallmentOutFlowOutSchema]
     model_config = {'from_attributes': True}

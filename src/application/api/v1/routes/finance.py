@@ -9,6 +9,7 @@ from src.application.api.v1.schemas.finance import (
     FinanceListInSchema,
     FinanceOutByIdSchema,
     FinanceOutFlowBaseSchema,
+    FinanceOutFlowByIdSchema,
     FinanceOutFlowOutSchema,
     FinanceOutSchema,
     HistoryFinanceSchema,
@@ -54,7 +55,7 @@ async def list_finance_out_flow(
     '/outflow/{outflow_id}',
     description='Rota para detalhar a saída de pagamento',
     status_code=status.HTTP_200_OK,
-    response_model=FinanceOutFlowOutSchema,
+    response_model=FinanceOutFlowByIdSchema,
     responses={
         status.HTTP_200_OK: {
             'description': 'Detalhamento de saida do pagamento',
@@ -63,7 +64,7 @@ async def list_finance_out_flow(
 )
 async def get_finance_out_flow(
     controller: FinanceRepositoryDep, outflow_id: UUID
-) -> FinanceOutFlowOutSchema | None:
+) -> FinanceOutFlowByIdSchema | None:
     return await controller.get_finance_out_flow(outflow_id)
 
 

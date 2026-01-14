@@ -103,7 +103,7 @@ class FinanceOutFlowByIdDto(BaseModel):
     value: Decimal
     date_flow: date
     installment_numbers: Optional[int] = None
-    installments: list[InstallmentOutDto]
+    installments: List[InstallmentOutFlowDto]
 
     model_config = {'from_attributes': True}
 

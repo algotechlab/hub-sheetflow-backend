@@ -16,6 +16,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutFlowOutDto,
     HistoryFinanceDto,
     InstallmentOutDto,
+    InstallmentOutFlowDto,
     InstallmentUpdateItem,
     UpdatedFinanceInstallNumbersDto,
     UpdatedFinanceInstallNumbersOutDto,
@@ -222,12 +223,8 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             finance = rows[0]
 
             installments = [
-                InstallmentOutDto(
-                    installment_number=row.installment_number,
-                    paid_at=row.paid_at,
-                    due_date=row.due_date,
-                    value=row.value,
-                    charged_at=row.charged_at,
+                InstallmentOutFlowDto(
+                    **row._mapping,
                 )
                 for row in rows
                 if row.installment_number is not None

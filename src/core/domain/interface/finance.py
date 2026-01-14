@@ -8,6 +8,7 @@ from src.core.domain.dtos.finance import (
     FinanceOutByIdDto,
     FinanceOutDto,
     FinanceOutFlowBaseDto,
+    FinanceOutFlowByIdDto,
     FinanceOutFlowOutDto,
     HistoryFinanceDto,
     UpdatedFinanceInstallNumbersDto,
@@ -42,7 +43,7 @@ class FinanceRepositoriesInterface(ABC):
     @abstractmethod
     async def get_finance_out_flow(
         self, outflow_id: UUID
-    ) -> FinanceOutFlowOutDto | None: ...
+    ) -> FinanceOutFlowByIdDto | None: ...
 
     @abstractmethod
     async def updated_finance_out_flow(
