@@ -12,6 +12,7 @@ from src.core.domain.dtos.finance import (
     FinanceListOutDto,
     FinanceOutByIdDto,
     FinanceOutDto,
+    FinanceOutFlowByIdDto,
     FinanceOutFlowOutDto,
     HistoryFinanceDto,
     InstallmentOutDto,
@@ -19,12 +20,17 @@ from src.core.domain.dtos.finance import (
     UpdatedFinanceInstallNumbersDto,
     UpdatedFinanceInstallNumbersOutDto,
     UpdatedFinanceOutFlowDto,
+    UpdatedFinanceOutFlowInstallNumbersDto,
+    UpdatedFinanceOutFlowInstallNumbersOutDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
 )
 from src.core.domain.interface.finance import FinanceRepositoriesInterface
 from src.core.domain.models.finance import Finance
 from src.core.domain.models.financial_outflow_box import FinanceOutFlowBox
+from src.core.domain.models.installment_out_flow_payment import (
+    InstallmentOutflowPayment,
+)
 from src.core.domain.models.installment_payment import InstallmentPayment
 from src.core.exceptions.custom import DatabaseException
 
@@ -77,6 +83,32 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
         try:
             db_finance = FinanceOutFlowBox(**finance_outflow.model_dump())
             self.session.add(db_finance)
+            await self.session.flush()
+            await self.session.refresh(db_finance)
+
+            if finance_outflow.installment_numbers:
+                installment_value = (
+                    finance_outflow.value / Decimal(finance_outflow.installment_numbers)
+                ).quantize(Decimal('0.01'))
+
+                installments: list[InstallmentOutflowPayment] = []
+
+                for number in range(1, finance_outflow.installment_numbers + 1):
+                    due_date = finance_outflow.date_flow + timedelta(days=30 * number)
+
+                    installment = InstallmentOutflowPayment(
+                        installment_number=number,
+                        value=installment_value,
+                        due_date=due_date,
+                        finance_out_flow_box_id=db_finance.id,
+                    )
+
+                    installments.append(installment)
+
+                self.session.add_all(installments)
+
+                await self.session.flush()
+
             await self.session.commit()
             await self.session.refresh(db_finance)
             return FinanceOutFlowOutDto.model_validate(db_finance)
@@ -150,28 +182,67 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             await self.session.rollback()
             raise DatabaseException(str(error))
 
-    async def get_finance_out_flow(self, outflow_id: UUID) -> FinanceOutFlowOutDto:
+    async def get_finance_out_flow(
+        self, outflow_id: UUID
+    ) -> FinanceOutFlowOutDto | None:
         try:
-            query = select(
-                FinanceOutFlowBox.id,
-                FinanceOutFlowBox.description,
-                FinanceOutFlowBox.value,
-                FinanceOutFlowBox.date_flow,
-                FinanceOutFlowBox.installment_numbers,
-                FinanceOutFlowBox.created_at,
-                FinanceOutFlowBox.updated_at,
-            ).where(
-                FinanceOutFlowBox.id.__eq__(outflow_id),
-                FinanceOutFlowBox.is_deleted.__eq__(False),
+            stmt = (
+                select(
+                    FinanceOutFlowBox.id,
+                    FinanceOutFlowBox.description,
+                    FinanceOutFlowBox.value,
+                    FinanceOutFlowBox.date_flow,
+                    FinanceOutFlowBox.installment_numbers,
+                    FinanceOutFlowBox.created_at,
+                    FinanceOutFlowBox.updated_at,
+                    InstallmentOutflowPayment.installment_number,
+                    InstallmentOutflowPayment.paid_at,
+                    InstallmentOutflowPayment.due_date,
+                    InstallmentOutflowPayment.value,
+                    InstallmentOutflowPayment.charged_at,
+                )
+                .outerjoin(
+                    InstallmentOutflowPayment,
+                    InstallmentOutflowPayment.finance_out_flow_box_id.__eq__(
+                        FinanceOutFlowBox.id
+                    ),
+                )
+                .where(
+                    FinanceOutFlowBox.id.__eq__(outflow_id),
+                    FinanceOutFlowBox.is_deleted.__eq__(False),
+                )
             )
 
-            result = await self.session.execute(query)
-            row = result.one_or_none()
+            result = await self.session.execute(stmt)
+            rows = result.all()
 
-            if not row:
+            if not rows:
                 return None
 
-            return FinanceOutFlowOutDto.model_validate(row._mapping)
+            finance = rows[0]
+
+            installments = [
+                InstallmentOutDto(
+                    installment_number=row.installment_number,
+                    paid_at=row.paid_at,
+                    due_date=row.due_date,
+                    value=row.value,
+                    charged_at=row.charged_at,
+                )
+                for row in rows
+                if row.installment_number is not None
+            ]
+
+            return FinanceOutFlowByIdDto(
+                id=finance.id,
+                created_at=finance.created_at,
+                updated_at=finance.updated_at,
+                description=finance.description,
+                value=finance.value,
+                date_flow=finance.date_flow,
+                installment_numbers=finance.installment_numbers,
+                installments=installments,
+            )
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))
@@ -392,6 +463,57 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
                 updated_at=updated_at,
             )
 
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
+
+    async def updated_finance_out_flow_install_numbers(
+        self,
+        finance_out_flow_box_id: UUID,
+        finance_out_flow: UpdatedFinanceOutFlowInstallNumbersDto,
+    ) -> UpdatedFinanceOutFlowInstallNumbersOutDto:
+        try:
+            updated_installments: list[InstallmentUpdateItem] = []
+
+            for item in finance_out_flow.installments:
+                stmt = (
+                    update(InstallmentOutflowPayment)
+                    .where(
+                        InstallmentOutflowPayment.finance_out_flow_box_id.__eq__(
+                            finance_out_flow_box_id
+                        ),
+                        InstallmentOutflowPayment.installment_number.__eq__(
+                            item.installment_number
+                        ),
+                        InstallmentOutflowPayment.is_deleted.is_(False),
+                    )
+                    .values(
+                        paid_at=datetime.now(),
+                    )
+                    .returning(
+                        InstallmentOutflowPayment.id,
+                        InstallmentOutflowPayment.installment_number,
+                        InstallmentOutflowPayment.created_at,
+                        InstallmentOutflowPayment.updated_at,
+                    )
+                )
+                result = await self.session.execute(stmt)
+                row = result.mappings().one_or_none()
+
+                updated_installments.append(
+                    InstallmentUpdateItem(
+                        installment_number=row['installment_number'],
+                        paid_at=item.paid_at,
+                    ).model_dump()
+                )
+
+            await self.session.commit()
+            return UpdatedFinanceOutFlowInstallNumbersOutDto(
+                id=finance_out_flow_box_id,
+                installments=updated_installments,
+                created_at=row['created_at'],
+                updated_at=row['updated_at'],
+            )
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

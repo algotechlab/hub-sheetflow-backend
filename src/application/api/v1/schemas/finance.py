@@ -43,10 +43,24 @@ class FinanceOutFlowBaseSchema(BaseModel):
     installment_numbers: Optional[int] = None
 
 
-class FinanceOutFlowOutSchema(FinanceOutFlowBaseSchema):
+class InstallmentOutFlowOutSchema(BaseModel):
+    installment_number: int
+    paid_at: Optional[datetime] = None
+    due_date: datetime
+    value: Decimal
+    charged_at: datetime | None
+    model_config = {'from_attributes': True}
+
+
+class FinanceOutFlowOutSchema(BaseModel):
     id: UUID
     created_at: datetime
     updated_at: datetime
+    description: str
+    value: Decimal
+    date_flow: date
+    installment_numbers: Optional[int] = None
+    installments: List[InstallmentOutFlowOutSchema]
     model_config = {'from_attributes': True}
 
 
@@ -104,6 +118,20 @@ class UpdatedFinanceInstallNumbersSchema(BaseModel):
 
 
 class UpdatedFinanceInstallNumbersOutSchema(UpdatedFinanceInstallNumbersSchema):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    model_config = {'from_attributes': True}
+
+
+class UpdatedFinanceOutFlowInstallNumbersSchema(BaseModel):
+    installments: List[InstallmentUpdateItem]
+    model_config = {'from_attributes': True}
+
+
+class UpdatedFinanceOutFlowInstallNumbersOutSchema(
+    UpdatedFinanceOutFlowInstallNumbersSchema
+):
     id: UUID
     created_at: datetime
     updated_at: datetime

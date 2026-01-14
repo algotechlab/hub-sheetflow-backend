@@ -12,6 +12,8 @@ from src.application.api.v1.schemas.finance import (
     HistoryFinanceSchema,
     UpdatedFinanceInstallNumbersOutSchema,
     UpdatedFinanceInstallNumbersSchema,
+    UpdatedFinanceOutFlowInstallNumbersOutSchema,
+    UpdatedFinanceOutFlowInstallNumbersSchema,
     UpdatedFinanceOutFlowOutSchema,
     UpdatedFinanceOutFlowSchema,
 )
@@ -20,6 +22,7 @@ from src.core.domain.dtos.finance import (
     FinanceBaseDto,
     FinanceOutFlowBaseDto,
     UpdatedFinanceInstallNumbersDto,
+    UpdatedFinanceOutFlowInstallNumbersDto,
     UpdateFinanceBaseDto,
 )
 from src.core.domain.use_case.finance import FinanceUseCase
@@ -48,7 +51,9 @@ class FinanceController:
         finance = await self.use_case.list_finance_out_flow(pagination_dto)
         return [FinanceOutFlowOutSchema.model_validate(user) for user in finance]
 
-    async def get_finance_out_flow(self, outflow_id: UUID) -> FinanceOutFlowOutSchema:
+    async def get_finance_out_flow(
+        self, outflow_id: UUID
+    ) -> FinanceOutFlowOutSchema | None:
         finance_case = await self.use_case.get_finance_out_flow(outflow_id)
         return FinanceOutFlowOutSchema.model_validate(finance_case)
 
@@ -85,6 +90,23 @@ class FinanceController:
         )
         return UpdatedFinanceInstallNumbersOutSchema.model_validate(
             finance_case.model_dump()
+        )
+
+    async def updated_finance_out_flow_install_numbers(
+        self,
+        finance_out_flow_box_id: UUID,
+        finance_out_flow: UpdatedFinanceOutFlowInstallNumbersSchema,
+    ) -> UpdatedFinanceOutFlowInstallNumbersOutSchema:
+        finance_out_flow_dto = UpdatedFinanceOutFlowInstallNumbersDto(
+            **finance_out_flow.model_dump()
+        )
+        finance_out_flow_case = (
+            await self.use_case.updated_finance_out_flow_install_numbers(
+                finance_out_flow_box_id, finance_out_flow_dto
+            )
+        )
+        return UpdatedFinanceOutFlowInstallNumbersOutSchema.model_validate(
+            finance_out_flow_case.model_dump()
         )
 
     async def add_finance_outflow(

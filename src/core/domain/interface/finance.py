@@ -13,6 +13,8 @@ from src.core.domain.dtos.finance import (
     UpdatedFinanceInstallNumbersDto,
     UpdatedFinanceInstallNumbersOutDto,
     UpdatedFinanceOutFlowDto,
+    UpdatedFinanceOutFlowInstallNumbersDto,
+    UpdatedFinanceOutFlowInstallNumbersOutDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
 )
@@ -38,7 +40,9 @@ class FinanceRepositoriesInterface(ABC):
     ) -> List[FinanceOutFlowOutDto]: ...
 
     @abstractmethod
-    async def get_finance_out_flow(self, outflow_id: UUID) -> FinanceOutFlowOutDto: ...
+    async def get_finance_out_flow(
+        self, outflow_id: UUID
+    ) -> FinanceOutFlowOutDto | None: ...
 
     @abstractmethod
     async def updated_finance_out_flow(
@@ -60,6 +64,13 @@ class FinanceRepositoriesInterface(ABC):
     async def updated_finance_install_numbers(
         self, finance_id: UUID, install_numbers: UpdatedFinanceInstallNumbersDto
     ) -> UpdatedFinanceInstallNumbersOutDto: ...
+
+    @abstractmethod
+    async def updated_finance_out_flow_install_numbers(
+        self,
+        finance_out_flow_box_id: UUID,
+        finance_out_flow: UpdatedFinanceOutFlowInstallNumbersDto,
+    ) -> UpdatedFinanceOutFlowInstallNumbersOutDto: ...
 
     @abstractmethod
     async def delete_finance(self, finance_id: UUID) -> bool: ...

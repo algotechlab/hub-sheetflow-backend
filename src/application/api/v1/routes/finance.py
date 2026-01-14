@@ -14,6 +14,8 @@ from src.application.api.v1.schemas.finance import (
     HistoryFinanceSchema,
     UpdatedFinanceInstallNumbersOutSchema,
     UpdatedFinanceInstallNumbersSchema,
+    UpdatedFinanceOutFlowInstallNumbersOutSchema,
+    UpdatedFinanceOutFlowInstallNumbersSchema,
     UpdatedFinanceOutFlowOutSchema,
     UpdatedFinanceOutFlowSchema,
     UpdateFinanceBaseSchema,
@@ -61,7 +63,7 @@ async def list_finance_out_flow(
 )
 async def get_finance_out_flow(
     controller: FinanceRepositoryDep, outflow_id: UUID
-) -> FinanceOutFlowOutSchema:
+) -> FinanceOutFlowOutSchema | None:
     return await controller.get_finance_out_flow(outflow_id)
 
 
@@ -185,6 +187,22 @@ async def updated_finance_install_numbers(
     finance: UpdatedFinanceInstallNumbersSchema,
 ) -> UpdatedFinanceInstallNumbersOutSchema:
     return await controller.updated_finance_install_numbers(finance_id, finance)
+
+
+@router.patch(
+    '/outflow/{finance_out_flow_box_id}/installments',
+    description='Rota para atualizar o pagamento',
+    status_code=status.HTTP_200_OK,
+    response_model=UpdatedFinanceOutFlowInstallNumbersOutSchema,
+)
+async def updated_finance_out_flow_install_numbers(
+    controller: FinanceRepositoryDep,
+    finance_out_flow_box_id: UUID,
+    finance_out_flow: UpdatedFinanceOutFlowInstallNumbersSchema,
+) -> UpdatedFinanceOutFlowInstallNumbersOutSchema:
+    return await controller.updated_finance_out_flow_install_numbers(
+        finance_out_flow_box_id, finance_out_flow
+    )
 
 
 @router.delete(

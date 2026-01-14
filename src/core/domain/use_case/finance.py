@@ -13,6 +13,8 @@ from src.core.domain.dtos.finance import (
     UpdatedFinanceInstallNumbersDto,
     UpdatedFinanceInstallNumbersOutDto,
     UpdatedFinanceOutFlowDto,
+    UpdatedFinanceOutFlowInstallNumbersDto,
+    UpdatedFinanceOutFlowInstallNumbersOutDto,
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
 )
@@ -37,7 +39,9 @@ class FinanceUseCase:
     ) -> List[FinanceOutFlowOutDto]:
         return await self.finance_service.list_finance_out_flow(pagination)
 
-    async def get_finance_out_flow(self, outflow_id: UUID) -> FinanceOutFlowOutDto:
+    async def get_finance_out_flow(
+        self, outflow_id: UUID
+    ) -> FinanceOutFlowOutDto | None:
         return await self.finance_service.get_finance_out_flow(outflow_id)
 
     async def updated_finance_out_flow(
@@ -69,6 +73,15 @@ class FinanceUseCase:
     ) -> UpdatedFinanceInstallNumbersOutDto:
         return await self.finance_service.updated_finance_install_numbers(
             finance_id, install_numbers
+        )
+
+    async def updated_finance_out_flow_install_numbers(
+        self,
+        finance_out_flow_box_id: UUID,
+        finance_out_flow: UpdatedFinanceOutFlowInstallNumbersDto,
+    ) -> UpdatedFinanceOutFlowInstallNumbersOutDto:
+        return await self.finance_service.updated_finance_out_flow_install_numbers(
+            finance_out_flow_box_id, finance_out_flow
         )
 
     async def delete_finance(self, finance_id: UUID) -> None:

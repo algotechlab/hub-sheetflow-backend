@@ -69,6 +69,7 @@ class InstallmentOutDto(BaseModel):
     paid_at: datetime | None
     due_date: datetime
     value: Decimal
+    charged_at: datetime | None
 
     model_config = {'from_attributes': True}
 
@@ -79,6 +80,29 @@ class FinanceOutByIdDto(BaseModel):
     date_contract: date
     document: str
     total: Decimal
+    installments: list[InstallmentOutDto]
+
+    model_config = {'from_attributes': True}
+
+
+class InstallmentOutFlowDto(BaseModel):
+    installment_number: int
+    paid_at: datetime | None
+    due_date: datetime
+    value: Decimal
+    charged_at: datetime | None
+
+    model_config = {'from_attributes': True}
+
+
+class FinanceOutFlowByIdDto(BaseModel):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+    description: str
+    value: Decimal
+    date_flow: date
+    installment_numbers: Optional[int] = None
     installments: list[InstallmentOutDto]
 
     model_config = {'from_attributes': True}
@@ -103,6 +127,16 @@ class UpdatedFinanceInstallNumbersDto(BaseModel):
 
 
 class UpdatedFinanceInstallNumbersOutDto(UpdatedFinanceInstallNumbersDto):
+    id: UUID
+    created_at: datetime
+    updated_at: datetime
+
+
+class UpdatedFinanceOutFlowInstallNumbersDto(BaseModel):
+    installments: List[InstallmentUpdateItem]
+
+
+class UpdatedFinanceOutFlowInstallNumbersOutDto(UpdatedFinanceOutFlowInstallNumbersDto):
     id: UUID
     created_at: datetime
     updated_at: datetime
