@@ -9,9 +9,14 @@ class FinanceNotFoundException(NotFoundException):
     code = 'FINANCE_NOT_FOUND_ERROR'
 
 
+class FinanceOutFlowNotFoundException(NotFoundException):
+    code = 'FINANCE_OUT_FLOW_NOT_FOUND_ERROR'
+
+
 __all__ = [
     'DuplicatedException',
     'FinanceDuplicatedException',
     'FinanceNotFoundException',
     'NotFoundException',
+    'FinanceOutFlowNotFoundException',
 ]

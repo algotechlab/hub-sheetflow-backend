@@ -119,3 +119,6 @@ class FinanceController:
 
     async def delete_finance(self, finance_id: UUID) -> None:
         await self.use_case.delete_finance(finance_id)
+
+    async def delete_finance_out_flow(self, finance_out_flow_id: UUID) -> None:
+        return await self.use_case.delete_finance_out_flow(finance_out_flow_id)

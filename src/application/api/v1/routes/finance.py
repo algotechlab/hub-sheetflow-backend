@@ -213,3 +213,14 @@ async def updated_finance_out_flow_install_numbers(
 )
 async def delete_finance(controller: FinanceRepositoryDep, finance_id: UUID):
     return await controller.delete_finance(finance_id)
+
+
+@router.delete(
+    '/outflow/{finance_out_flow_id}',
+    description='Rota para deletar a saída de pagamento',
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_finance_out_flow(
+    controller: FinanceRepositoryDep, finance_out_flow_id: UUID
+):
+    return await controller.delete_finance_out_flow(finance_out_flow_id)

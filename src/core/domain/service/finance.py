@@ -85,3 +85,8 @@ class FinanceService:
 
     async def delete_finance(self, finance_id: UUID) -> bool:
         return await self.finance_repository.delete_finance(finance_id)
+
+    async def delete_finance_out_flow(self, finance_out_flow_id: UUID) -> bool:
+        return await self.finance_repository.delete_finance_out_flow(
+            finance_out_flow_id
+        )

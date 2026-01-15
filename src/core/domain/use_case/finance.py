@@ -19,7 +19,10 @@ from src.core.domain.dtos.finance import (
     UpdatedFinanceOutFlowOutDto,
     UpdateFinanceBaseDto,
 )
-from src.core.domain.exceptions.finance import FinanceNotFoundException
+from src.core.domain.exceptions.finance import (
+    FinanceNotFoundException,
+    FinanceOutFlowNotFoundException,
+)
 from src.core.domain.service.finance import FinanceService
 
 
@@ -90,3 +93,11 @@ class FinanceUseCase:
 
         if result is None:
             raise FinanceNotFoundException(f'Esse {finance_id} não foi encontrado.')
+
+    async def delete_finance_out_flow(self, finance_out_flow_id: UUID) -> None:
+        result = await self.finance_service.delete_finance_out_flow(finance_out_flow_id)
+
+        if not result:
+            raise FinanceOutFlowNotFoundException(
+                f'Esse {finance_out_flow_id} não foi encontrado.'
+            )

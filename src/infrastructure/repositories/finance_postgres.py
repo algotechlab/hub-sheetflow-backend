@@ -517,18 +517,76 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
 
     async def delete_finance(self, finance_id: UUID) -> bool:
         try:
-            stmt = (
+            finance_stmt = (
                 update(Finance)
-                .where(Finance.id.__eq__(finance_id), Finance.is_deleted.__eq__(False))
+                .where(
+                    Finance.id.__eq__(finance_id),
+                    Finance.is_deleted.__eq__(False),
+                )
                 .values(is_deleted=True)
-                .returning(Finance)
+                .returning(Finance.id)
             )
-            result = await self.session.execute(stmt)
+
+            finance_result = await self.session.execute(finance_stmt)
+            deleted_finance_id = finance_result.scalar_one_or_none()
+
+            if deleted_finance_id is None:
+                await self.session.rollback()
+                return False
+
+            installment_stmt = (
+                update(InstallmentPayment)
+                .where(
+                    InstallmentPayment.finance_id.__eq__(finance_id),
+                    InstallmentPayment.is_deleted.__eq__(False),
+                )
+                .values(is_deleted=True)
+            )
+
+            await self.session.execute(installment_stmt)
+
             await self.session.commit()
+            return True
 
-            updated_finance = result.scalar_one_or_none()
+        except Exception as error:
+            await self.session.rollback()
+            raise DatabaseException(str(error))
 
-            return updated_finance is not None
+    async def delete_finance_out_flow(self, finance_out_flow_id: UUID) -> bool:
+        try:
+            finance_stmt = (
+                update(FinanceOutFlowBox)
+                .where(
+                    FinanceOutFlowBox.id.__eq__(finance_out_flow_id),
+                    FinanceOutFlowBox.is_deleted.__eq__(False),
+                )
+                .values(is_deleted=True)
+                .returning(FinanceOutFlowBox.id)
+            )
+
+            finance_result = await self.session.execute(finance_stmt)
+            finance_id = finance_result.scalar_one_or_none()
+
+            if finance_id is None:
+                await self.session.rollback()
+                return False
+
+            installment_stmt = (
+                update(InstallmentOutflowPayment)
+                .where(
+                    InstallmentOutflowPayment.finance_out_flow_box_id.__eq__(
+                        finance_out_flow_id
+                    ),
+                    InstallmentOutflowPayment.is_deleted.__eq__(False),
+                )
+                .values(is_deleted=True)
+            )
+
+            await self.session.execute(installment_stmt)
+
+            await self.session.commit()
+            return True
+
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))

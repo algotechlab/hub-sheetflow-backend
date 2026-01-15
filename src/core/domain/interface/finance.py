@@ -75,3 +75,6 @@ class FinanceRepositoriesInterface(ABC):
 
     @abstractmethod
     async def delete_finance(self, finance_id: UUID) -> bool: ...
+
+    @abstractmethod
+    async def delete_finance_out_flow(self, finance_out_flow_id: UUID) -> bool: ...
