@@ -1,3 +1,4 @@
+from datetime import date
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -47,6 +48,7 @@ class GroupsMappingsDto(BaseModel):
     a_ser_feito: Optional[str] = None
     andamento: Optional[str] = None
     observacao: Optional[str] = None
+    prazo: Optional[date] = None
 
 
 class GroupsMappingsUpdateDto(GroupsMappingsDto):
