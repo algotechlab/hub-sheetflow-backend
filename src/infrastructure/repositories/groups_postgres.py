@@ -16,6 +16,7 @@ from src.core.domain.dtos.groups import (
     GroupsUpdateDto,
 )
 from src.core.domain.interface.groups import GroupsRepositoriesInterface
+from src.core.domain.models.court_deadline import CourtDeadline
 from src.core.domain.models.groups import Groups
 from src.core.domain.models.mappings_groups import MappingsGroups
 from src.core.exceptions.custom import DatabaseException, NotFoundException
@@ -176,11 +177,29 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
         self, group_id: UUID, mappings: GroupsMappingsDto
     ) -> GroupsMappingsOutDto:
         try:
-            mappings_dto = MappingsGroups(groups_id=group_id, **mappings.model_dump())
-            self.session.add(mappings_dto)
+            mapping = MappingsGroups(
+                groups_id=group_id,
+                **mappings.model_dump(),
+            )
+            self.session.add(mapping)
+
+            await self.session.flush()
+
+            court_deadline = CourtDeadline(
+                groups_id=group_id,
+                mappings_groups_id=mapping.id,
+                contato=mapping.contato,
+                document=mapping.documento,
+                prazo=mapping.prazo,
+                name=mapping.name,
+            )
+            self.session.add(court_deadline)
+
             await self.session.commit()
-            await self.session.refresh(mappings_dto)
-            return GroupsMappingsOutDto.model_validate(mappings_dto)
+
+            await self.session.refresh(mapping)
+
+            return GroupsMappingsOutDto.model_validate(mapping)
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))
@@ -228,7 +247,7 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
 
     async def delete_user_to_group(self, group_id: UUID, user_id: UUID):
         try:
-            stmt = (
+            user_to_group_stmt = (
                 update(MappingsGroups)
                 .where(
                     MappingsGroups.groups_id.__eq__(group_id),
@@ -238,11 +257,25 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
                 .values(is_deleted=True)
                 .returning(MappingsGroups)
             )
-            result = await self.session.execute(stmt)
+            user_to_group_result = await self.session.execute(user_to_group_stmt)
             await self.session.commit()
-            updated_group = result.scalar_one_or_none()
 
-            return updated_group is not None
+            if user_to_group_result is None:
+                await self.session.rollback()
+                return False
+
+            court_deadline_stmt = (
+                update(CourtDeadline)
+                .where(
+                    CourtDeadline.mappings_groups_id.__eq__(user_id),
+                    CourtDeadline.is_deleted.__eq__(False),
+                )
+                .values(is_deleted=True)
+            )
+            await self.session.execute(court_deadline_stmt)
+            await self.session.commit()
+
+            return True
         except Exception as error:
             await self.session.rollback()
             raise DatabaseException(str(error))
