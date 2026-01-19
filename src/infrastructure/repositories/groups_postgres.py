@@ -146,6 +146,7 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
                     MappingsGroups.a_ser_feito,
                     MappingsGroups.andamento,
                     MappingsGroups.observacao,
+                    MappingsGroups.prazo,
                     MappingsGroups.groups_id,
                     MappingsGroups.created_at,
                     MappingsGroups.updated_at,

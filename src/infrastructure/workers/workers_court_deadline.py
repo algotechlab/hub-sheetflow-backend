@@ -47,12 +47,12 @@ class CourtDeadlineNotificationWorker:
         court_deadline: CourtDeadline,
     ) -> str:
         return (
-            f'📌 *Alerta de Prazo Judicial*\n\n'
+            f'📌 *Alerta de Vencimento de Prazo Judicial*\n\n'
             f'Nome: {court_deadline.name}\n'
             f'Contato: {court_deadline.contato}\n'
             f'Documento: {court_deadline.document}\n'
-            f'Prazo: {court_deadline.prazo}\n\n'
-            f'⚠️ Prazo vencido. Realizar ação.'
+            f'Prazo a vencer hoje: {court_deadline.prazo}\n\n'
+            f'⚠️ Prazo vencido. Realizar ação notificação.'
         )
 
     async def _process_court_deadline(
