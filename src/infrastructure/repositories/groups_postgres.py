@@ -159,11 +159,8 @@ class GroupsRepositoriesPostgres(GroupsRepositoriesInterface):
             )
 
             if pagination.filter_by and pagination.filter_value:
-                query = query.filter(
-                    getattr(MappingsGroups, pagination.filter_by).__eq__(
-                        pagination.filter_value
-                    )
-                )
+                column = getattr(MappingsGroups, pagination.filter_by)
+                query = query.where(column.ilike(f'%{pagination.filter_value}%'))
 
             result = await self.session.execute(query)
             return [

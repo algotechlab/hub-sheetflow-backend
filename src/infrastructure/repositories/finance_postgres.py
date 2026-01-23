@@ -137,11 +137,9 @@ class FinanceRepositoriesPostgres(FinanceRepositoriesInterface):
             )
 
             if pagination.filter_by and pagination.filter_value:
-                query = query.filter(
-                    getattr(Finance, pagination.filter_by).__eq__(
-                        pagination.filter_value
-                    )
-                )
+                column = getattr(Finance, pagination.filter_by)
+                query = query.where(column.ilike(f'%{pagination.filter_value}%'))
+
             result = await self.session.execute(query)
             return [
                 FinanceListOutDto.model_validate(row._mapping) for row in result.all()
